@@ -387,7 +387,7 @@ void PCT_SendMoudleTimeout(PTC_ProtocolCon *pstruProtocolController)
         pstruBuffer->u8Status = MSG_BUFFER_IDLE;
         pstruProtocolController->u8SendMoudleTimer = PCT_TIMER_INVAILD;
         pstruProtocolController->u8ReSendMoudleNum = 0;
-        
+        PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
         PCT_SendErrorMsg(pstruMsg->MsgId, NULL, 0);
     }
     else
@@ -426,7 +426,7 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
 
     struHead.u8SecType = ZC_SEC_ALG_AES;
     struHead.u16TotalMsg = ZC_HTONS(u16DataLen);
-    
+    PCT_SendEmptyMsg(((ZC_MessageHead *)pu8Msg)->MsgId, ZC_SEC_ALG_AES);
     (void)PCT_SendMsgToCloud(&struHead, pu8Msg);
     
     return;
@@ -948,18 +948,7 @@ void PCT_HandleEvent(PTC_ProtocolCon *pstruContoller)
         
         return;
     }
-		
-    if (PCT_TIMER_INVAILD != pstruContoller->u8SendMoudleTimer)
-    {
-        PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
-        PCT_SendErrorMsg(pstruMsg->MsgId, NULL, 0);
-
-        pstruBuffer->u32Len = 0;
-        pstruBuffer->u8Status = MSG_BUFFER_IDLE;
-       
-        return;
-    }
-		
+				
     /*when do OTA, does not send empty*/
     switch (pstruMsg->MsgCode)
     {
@@ -994,7 +983,7 @@ void PCT_HandleEvent(PTC_ProtocolCon *pstruContoller)
             break;
         default:
             PCT_HandleMoudleMsg(pstruContoller, pstruBuffer);
-            PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
+
             break;                                    
     }
 

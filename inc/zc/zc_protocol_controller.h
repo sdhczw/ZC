@@ -97,7 +97,7 @@ typedef void (*pFunStopTimer)(u8 u8TimerIndex);
 typedef void (*pFunRest)(void);
 typedef void (*pFunGetMac)(u8 *pu8Mac);
 typedef void (*pFunReboot)();
-typedef void (*pFunPrintf)(const u8 *pu8format, ...);
+typedef void (*pFunPrintf)(const char *pu8format, ...);
 typedef void *(*pFunMalloc)(u32 size);
 typedef void (*pFunFree)(void *ptr);
 
