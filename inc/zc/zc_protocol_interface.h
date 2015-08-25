@@ -130,6 +130,7 @@ typedef enum
     ZC_CODE_RESET_NETWORK = 34,
 	
 	ZC_CODE_OTA_CONFIRM = 35,
+    ZC_CODE_UNBIND = 36,
 	
 	ZC_CODE_EXT = 63, 
 }ZC_MsgCode;

@@ -11,6 +11,7 @@
 #define  __ZC_MOUDLE_CONFIG_H__
 
 #include <string.h>
+#include <stdlib.h>
 
 #ifdef ZC_DEBUG
 #ifdef ZC_OFF_LINETEST

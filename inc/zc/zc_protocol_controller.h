@@ -31,6 +31,7 @@
 #define    PCT_STATE_WAIT_MSG4              (5)
 #define    PCT_STATE_CONNECT_CLOUD          (6)
 #define    PCT_STATE_DISCONNECT_CLOUD       (7)
+#define    PCT_STATE_WAIT_UNBIND            (8)
 
 #define    PCT_INVAILD_SOCKET               (0xFFFFFFFF)
 
@@ -39,11 +40,13 @@
 #define    PCT_TIMER_SENDMOUDLE             (2)
 #define    PCT_TIMER_SENDHEART              (3)
 #define    PCT_TIMER_REGISTER               (4)
+#define    PCT_TIMER_SENDUBIND              (5)
 
 #define    PCT_TIMER_INTERVAL_RECONNECT     (1000)
 #define    PCT_TIMER_INTERVAL_HEART         (1000 * 60)
 #define    PCT_TIMER_INTERVAL_SENDMOUDLE    (1000)
 #define    PCT_TIMER_INTERVAL_REGISTER      (1000)
+#define    PCT_TIMER_INTERVAL_SENDUBIND     (1000)
 
 
 #define    PCT_SEND_BC_MAX_NUM              (300)       /*5 minutes*/
@@ -139,7 +142,8 @@ typedef struct
     u8   u8keyRecv;
     u8   u8ReconnectTimer;
     u8   u8AccessTimer;
-
+    u8   u8SendUnbindTimer;
+    
     u8   u8HeartTimer;
     u8   u8SendMoudleTimer;
     u8   u8RegisterTimer;
@@ -210,7 +214,7 @@ void PCT_HandleOtaFileChunkMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstr
 void PCT_HandleOtaFileEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
-
+void PCT_SendUnbindMsg(void);
 
 #ifdef __cplusplus
 }

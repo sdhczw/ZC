@@ -59,12 +59,18 @@ typedef struct
     u8 u8Password[ZC_PASSWORD_MAX_LEN];
 }ZC_ConnectionInfo;
 
+typedef struct
+{
+    u32  u32UnBindFlag;//use if u32UnBindFlag is 1;     
+}ZC_DeviceInfo;
+
 typedef struct 
 {
-    u32 u32MagicFlag;
-    ZC_ConnectionInfo struConnection;
-    ZC_CloudInfo    struCloudInfo;
-    ZC_SwitchInfo   struSwitchInfo;
+    u32 u32MagicFlag; //4 //4 byte
+    ZC_ConnectionInfo struConnection;//100 byte
+    ZC_CloudInfo    struCloudInfo; // 70byte
+    ZC_SwitchInfo   struSwitchInfo;//120byte
+    ZC_DeviceInfo   struDeviceInfo;//120byte
 }ZC_ConfigDB;
 
 extern ZC_ConfigDB g_struZcConfigDb;
@@ -82,6 +88,7 @@ void ZC_StoreTokenKey(u8 *pu8Data);
 void ZC_StoreConnectionInfo(u8 *pu8Ssid, u8 *pu8Password);
 void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data);
 void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort);
+void ZC_ConfigUnBind(u8 *pu8Data);
 #ifdef __cplusplus
 }
 #endif

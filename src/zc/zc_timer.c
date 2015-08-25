@@ -112,6 +112,9 @@ void TIMER_TimeoutAction(u8 u8TimerIndex)
                 PCT_TIMER_INTERVAL_REGISTER, &g_struProtocolController.u8RegisterTimer);
             PCT_SendNotifyMsg(ZC_CODE_WIFI_CONNECTED);
             break;
+        case PCT_TIMER_SENDUBIND:
+            PCT_SendUnbindMsg();
+            break;
             
     }
 }

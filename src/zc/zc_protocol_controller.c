@@ -555,6 +555,74 @@ void PCT_RecvAccessMsg4(PTC_ProtocolCon *pstruContoller)
     pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDHEART, 
         PCT_TIMER_INTERVAL_HEART, &pstruContoller->u8HeartTimer);
 }
+
+/*************************************************
+* Function: PCT_RecvAccessMsg4
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_HandleUnbindMsg(PTC_ProtocolCon *pstruContoller)
+{
+    MSG_Buffer *pstruBuffer;
+    ZC_MessageHead *pstruMsg;
+    pstruBuffer = (MSG_Buffer *)MSG_PopMsg(&g_struRecvQueue);
+    if (NULL == pstruBuffer)
+    {
+        return;
+    }
+    
+    pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
+    
+    if (ZC_CODE_ACK == pstruMsg->MsgCode)
+    {
+        g_struProtocolController.u8MainState = PCT_STATE_CONNECT_CLOUD;
+        if (PCT_TIMER_INVAILD != pstruContoller->u8SendUnbindTimer)
+        {
+           TIMER_StopTimer(pstruContoller->u8SendUnbindTimer);
+        }
+    }
+    pstruBuffer->u32Len = 0;
+    pstruBuffer->u8Status = MSG_BUFFER_IDLE;
+
+    pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDHEART, 
+        PCT_TIMER_INTERVAL_HEART, &pstruContoller->u8HeartTimer);
+}
+
+/*************************************************
+* Function: PCT_SendHeartMsg
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_SendUnbindMsg()
+{
+    ZC_MessageHead struUnbind;
+    ZC_SecHead struSecHead;
+    u16 u16Len = 0;
+    u32 u32Timer = 0;
+    EVENT_BuildMsg(ZC_CODE_UNBIND, 0, (u8*)&struUnbind, &u16Len, 
+        NULL, 0);
+    
+    /*build sec head*/
+    struSecHead.u8SecType = ZC_SEC_ALG_AES;
+    struSecHead.u16TotalMsg = ZC_HTONS(u16Len);
+    
+    (void)PCT_SendMsgToCloud(&struSecHead, (u8*)&struUnbind);
+
+    u32Timer = rand();
+    u32Timer = (PCT_TIMER_INTERVAL_SENDUBIND) * (u32Timer % 10 + 1);
+
+    g_struProtocolController.pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDUBIND, 
+        u32Timer, &g_struProtocolController.u8HeartTimer);
+    
+}
+
+
 /*************************************************
 * Function: PCT_SendAckToCloud
 * Description:
@@ -928,7 +996,16 @@ void PCT_HandleEvent(PTC_ProtocolCon *pstruContoller)
     MSG_Buffer *pstruBuffer;
     ZC_MessageHead *pstruMsg;
     
-	
+	if (ZC_MAGIC_FLAG == g_struZcConfigDb.struDeviceInfo.u32UnBindFlag)
+	{
+        g_struProtocolController.u8MainState = PCT_STATE_WAIT_UNBIND;
+        if (PCT_TIMER_INVAILD != pstruContoller->u8SendUnbindTimer)
+        {
+            TIMER_StopTimer(pstruContoller->u8SendUnbindTimer);
+        }
+        PCT_SendUnbindMsg();
+        return;
+    }
     pstruBuffer = (MSG_Buffer *)MSG_PopMsg(&g_struRecvQueue);
     if (NULL == pstruBuffer)
     {
@@ -1026,7 +1103,10 @@ void PCT_Run()
             break;
         case PCT_STATE_CONNECT_CLOUD:
             PCT_HandleEvent(pstruContoller);
-            break;                       
+            break;
+        case PCT_STATE_WAIT_UNBIND:
+            PCT_HandleUnbindMsg(pstruContoller);
+            break;
     }
     
 }
