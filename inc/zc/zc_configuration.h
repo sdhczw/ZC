@@ -70,7 +70,7 @@ typedef struct
     ZC_ConnectionInfo struConnection;//100 byte
     ZC_CloudInfo    struCloudInfo; // 70byte
     ZC_SwitchInfo   struSwitchInfo;//120byte
-    ZC_DeviceInfo   struDeviceInfo;//120byte
+    ZC_DeviceInfo   struDeviceInfo;//4byte
 }ZC_ConfigDB;
 
 extern ZC_ConfigDB g_struZcConfigDb;
@@ -88,7 +88,7 @@ void ZC_StoreTokenKey(u8 *pu8Data);
 void ZC_StoreConnectionInfo(u8 *pu8Ssid, u8 *pu8Password);
 void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data);
 void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort);
-void ZC_ConfigUnBind(u8 *pu8Data);
+void ZC_ConfigUnBind(u32 u32UnBindFlag);
 #ifdef __cplusplus
 }
 #endif

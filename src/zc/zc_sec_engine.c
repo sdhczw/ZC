@@ -345,17 +345,6 @@ u32 SEC_Encrypt(ZC_SecHead *pstruSecHead, u8 *pu8CiperBuf, u8 *pu8PlainBuf, u16 
     {
         pstruSecHead->u8SecType = ZC_SEC_ALG_NONE;
     }
-    else if (2 == g_struZcConfigDb.struSwitchInfo.u32SecSwitch)
-    {
-        if (ZC_SEC_ALG_RSA == pstruSecHead->u8SecType)
-        {
-            pstruSecHead->u8SecType = ZC_SEC_ALG_NONE;    
-        }
-        else
-        {
-            pstruSecHead->u8SecType = pstruSecHead->u8SecType;
-        }
-    }
     
     switch (pstruSecHead->u8SecType)
     {

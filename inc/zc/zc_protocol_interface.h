@@ -304,6 +304,7 @@ typedef struct
 /*ZC_OPT_TRANSPORT*/
 typedef struct
 {
+    u8 DomainId[ZC_DOMAIN_LEN];
     u8 DeviceId[ZC_HS_DEVICE_ID_LEN];
 }ZC_TransportInfo;
 

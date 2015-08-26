@@ -259,7 +259,11 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             ZC_ConfigPara(pu8Payload);
             break;
         case ZC_CODE_UNBIND:
-            ZC_ConfigUnBind(pu8Payload);
+            ZC_ConfigUnBind(ZC_MAGIC_FLAG);
+            if (*pu8Payload)
+            {
+                g_struProtocolController.pstruMoudleFun->pfunRest();
+            }
             break;
         case ZC_CODE_EXT:				
             ZC_DealExtCode(&g_struProtocolController,pu8Payload);

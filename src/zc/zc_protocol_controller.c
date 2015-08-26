@@ -576,13 +576,16 @@ void PCT_HandleUnbindMsg(PTC_ProtocolCon *pstruContoller)
     
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
     
-    if (ZC_CODE_ACK == pstruMsg->MsgCode)
+    if (ZC_CODE_UNBIND == pstruMsg->MsgCode)
     {
         g_struProtocolController.u8MainState = PCT_STATE_CONNECT_CLOUD;
         if (PCT_TIMER_INVAILD != pstruContoller->u8SendUnbindTimer)
         {
-           TIMER_StopTimer(pstruContoller->u8SendUnbindTimer);
-        }
+           TIMER_StopTimer(pstruContoller->u8SendUnbindTimer);           
+           pstruContoller->u8SendUnbindTimer = PCT_TIMER_INVAILD;
+        }        
+        ZC_ConfigUnBind(0xFFFFFFFF);
+        ZC_Printf("recv unbind resp ok\n");
     }
     pstruBuffer->u32Len = 0;
     pstruBuffer->u8Status = MSG_BUFFER_IDLE;
@@ -613,12 +616,13 @@ void PCT_SendUnbindMsg()
     struSecHead.u16TotalMsg = ZC_HTONS(u16Len);
     
     (void)PCT_SendMsgToCloud(&struSecHead, (u8*)&struUnbind);
+     ZC_Printf("Send Unbind msg ok\n");
 
     u32Timer = rand();
     u32Timer = (PCT_TIMER_INTERVAL_SENDUBIND) * (u32Timer % 10 + 1);
 
     g_struProtocolController.pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDUBIND, 
-        u32Timer, &g_struProtocolController.u8HeartTimer);
+        u32Timer, &g_struProtocolController.u8SendUnbindTimer);
     
 }
 
@@ -1058,9 +1062,10 @@ void PCT_HandleEvent(PTC_ProtocolCon *pstruContoller)
         case ZC_CODE_RESET_NETWORK:
             PCT_ResetNetWork(pstruContoller, pstruBuffer);
             break;
+        case ZC_CODE_UNBIND:
+            break;
         default:
             PCT_HandleMoudleMsg(pstruContoller, pstruBuffer);
-
             break;                                    
     }
 

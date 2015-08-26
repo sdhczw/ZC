@@ -203,18 +203,10 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data)
 * Parameter: 
 * History:
 *************************************************/
-void ZC_ConfigUnBind(u8 *pu8Data)
+void ZC_ConfigUnBind(u32 u32UnBindFlag)
 {
-    if (*pu8Data)
-    {
-        g_struProtocolController.pstruMoudleFun->pfunRest();
-    }
-    g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = ZC_MAGIC_FLAG; 
+    g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = u32UnBindFlag; 
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
-    if (PCT_STATE_CONNECT_CLOUD==g_struProtocolController.u8MainState)
-    {
-       g_struProtocolController.u8MainState = PCT_STATE_WAIT_UNBIND; 
-    }
 }
 
 /******************************* FILE END ***********************************/

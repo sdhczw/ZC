@@ -30,8 +30,8 @@
 #define    PCT_STATE_WAIT_ACCESSRSP         (4)
 #define    PCT_STATE_WAIT_MSG4              (5)
 #define    PCT_STATE_CONNECT_CLOUD          (6)
-#define    PCT_STATE_DISCONNECT_CLOUD       (7)
-#define    PCT_STATE_WAIT_UNBIND            (8)
+#define    PCT_STATE_WAIT_UNBIND            (7)
+#define    PCT_STATE_DISCONNECT_CLOUD       (8)
 
 #define    PCT_INVAILD_SOCKET               (0xFFFFFFFF)
 
