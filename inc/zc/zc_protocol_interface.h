@@ -289,8 +289,6 @@ typedef struct
     u32 u32IpAddr;
     u8  u8CloudAddr[ZC_CLOUD_ADDR_MAX_LEN];
     u8  u8CloudKey[ZC_CLOUD_KEY_MAX_LEN];
-    u16 u16Port;
-    u16 u16Pad;
 }ZC_Configuration;
 
 /******************************* Option definition***********************************/
