@@ -76,7 +76,7 @@ void ZC_ConfigPara(u8 *pu8Data)
     g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = ZC_HTONL(pstruConfig->u32ServerAddrConfig);
 
     g_struZcConfigDb.struSwitchInfo.u32ServerIp = ZC_HTONL(pstruConfig->u32IpAddr);
-    g_struZcConfigDb.struSwitchInfo.u16ServerPort = ZC_HTONS(pstruConfig->u16Port);
+    g_struZcConfigDb.struSwitchInfo.u16ServerPort = ZC_CLOUD_PORT;
 
     memcpy(g_struZcConfigDb.struSwitchInfo.u8Password, pstruConfig->u8Password, ZC_PASSWORD_MAX_LEN);
     memcpy(g_struZcConfigDb.struSwitchInfo.u8Ssid, pstruConfig->u8Ssid, ZC_SSID_MAX_LEN);

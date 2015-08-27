@@ -133,6 +133,7 @@ typedef enum
     ZC_CODE_UNBIND = 36,
 	
 	ZC_CODE_EXT = 63, 
+    ZC_CODE_EVENT_BASE = 64
 }ZC_MsgCode;
 
 /*ZCloud Message Ext code*/
@@ -210,16 +211,18 @@ typedef struct
 /*msg code: ZC_CODE_DESCRIBE*/
 typedef struct 
 {
-    //u8  u8WifiSwVersion;            
-    //u8  u8HwVersion;              
-    //u8  u8ArmSwVersion;          
-    //u8  u8ZigbeeSwVersion; 
     u8  u8EqVersion[ZC_EQVERSION_LEN];      //eq vision
     u8  u8ModuleKey[ZC_MODULE_KEY_LEN];
     u8  u8Domain[ZC_DOMAIN_LEN];
     u8  u8DeviceId[ZC_HS_DEVICE_ID_LEN];
 }ZC_RegisterReq;
 
+/*msg code: ZC_CODE_EXT_REGSITER*/
+typedef struct 
+{
+    ZC_ExtMessageHead struExtMessageHead;
+    ZC_RegisterReq struRegReq;
+}ZC_ExtRegisterReq;
 
 /*msg code: ZC_CODE_OTA_BEGIN*/
 typedef struct
@@ -274,15 +277,6 @@ typedef struct
     u8 u8Pad[3];
     //u8 DeviceId[0];
 }ZC_ClientAccessInfo;
-
-/*ZC_CODE_CLIENT_ACCESS_RSP*/
-typedef struct
-{
-    u8 u8BlackClientNum;
-    u8 u8WhiteClientNum;    
-    u8 u8Pad[2];
-    //u8 DeviceId[0];
-}ZC_BlackWhiteClientList;
 
 typedef struct
 {
