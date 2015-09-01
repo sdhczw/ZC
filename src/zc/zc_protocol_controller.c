@@ -557,7 +557,7 @@ void PCT_RecvAccessMsg4(PTC_ProtocolCon *pstruContoller)
 }
 
 /*************************************************
-* Function: PCT_RecvAccessMsg4
+* Function: PCT_HandleUnbindMsg
 * Description: 
 * Author: cxy 
 * Returns: 
@@ -595,7 +595,7 @@ void PCT_HandleUnbindMsg(PTC_ProtocolCon *pstruContoller)
 }
 
 /*************************************************
-* Function: PCT_SendHeartMsg
+* Function: PCT_SendUnbindMsg
 * Description: 
 * Author: cxy 
 * Returns: 
