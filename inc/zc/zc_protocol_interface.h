@@ -12,7 +12,7 @@
 #include <zc_common.h>
 
 #define ZC_HS_MSG_LEN                       (32)
-#define ZC_HS_DEVICE_ID_LEN                 (16)
+#define ZC_HS_DEVICE_ID_LEN                 (48)
 #define ZC_HS_SESSION_KEY_LEN               (16)
 #define ZC_HS_SESSION_IV_LEN                (16)
 #define ZC_MODULE_KEY_LEN                   (112)
