@@ -132,7 +132,7 @@ typedef enum
     ZC_CODE_OTA_CONFIRM = 35,
     ZC_CODE_UNBIND = 36,
 	
-	  ZC_CODE_EXT = 63, 
+    ZC_CODE_EXT = 63, 
     ZC_CODE_EVENT_BASE = 64
 }ZC_MsgCode;
 

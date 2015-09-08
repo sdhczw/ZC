@@ -87,7 +87,6 @@ void PCT_SendHeartMsg()
     
 }
 
-
 /*************************************************
 * Function: PCT_Init
 * Description: 
@@ -412,8 +411,10 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
 {
     MSG_Buffer *pstruBuffer;
     ZC_SecHead struHead;
+    ZC_MessageHead *pstruMsg = (ZC_MessageHead *)pu8Msg;
 
-    if (PCT_TIMER_INVAILD != g_struProtocolController.u8SendMoudleTimer)
+    if ((PCT_TIMER_INVAILD != g_struProtocolController.u8SendMoudleTimer) &&
+        (pstruMsg->MsgCode < 200))
     {
         TIMER_StopTimer(g_struProtocolController.u8SendMoudleTimer);
         pstruBuffer = (MSG_Buffer *)g_struProtocolController.pu8SendMoudleBuffer;
@@ -421,12 +422,11 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
         pstruBuffer->u8Status = MSG_BUFFER_IDLE;
         g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
         g_struProtocolController.u8ReSendMoudleNum = 0;
+        PCT_SendEmptyMsg(((ZC_MessageHead *)pu8Msg)->MsgId, ZC_SEC_ALG_AES);
     }
-
 
     struHead.u8SecType = ZC_SEC_ALG_AES;
     struHead.u16TotalMsg = ZC_HTONS(u16DataLen);
-    PCT_SendEmptyMsg(((ZC_MessageHead *)pu8Msg)->MsgId, ZC_SEC_ALG_AES);
     (void)PCT_SendMsgToCloud(&struHead, pu8Msg);
     
     return;
