@@ -119,7 +119,7 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
 * Parameter: 
 * History:
 *************************************************/
-u32 ZC_DealExtCode(PTC_ProtocolCon *pstruContoller, u8 *pu8Data)
+u32 ZC_DealExtCode(u8 *pu8Data)
 {
     ZC_ExtMessageHead *pstruExtMsg;
     u8 *pu8Payload = NULL; 
@@ -129,32 +129,31 @@ u32 ZC_DealExtCode(PTC_ProtocolCon *pstruContoller, u8 *pu8Data)
     {
         case ZC_CODE_EXT_REGSITER:
         {
-            if ((pstruContoller->u8MainState >= PCT_STATE_ACCESS_NET) &&
-            (pstruContoller->u8MainState < PCT_STATE_DISCONNECT_CLOUD)
+            if ((g_struProtocolController.u8MainState >= PCT_STATE_ACCESS_NET) &&
+            (g_struProtocolController.u8MainState < PCT_STATE_DISCONNECT_CLOUD)
             )
             {
                 PCT_SendNotifyMsg(ZC_CODE_CLOUD_CONNECTED);                
                 return ZC_RET_OK;
             }
-            else if (PCT_STATE_DISCONNECT_CLOUD == pstruContoller->u8MainState)
+            else if (PCT_STATE_DISCONNECT_CLOUD == g_struProtocolController.u8MainState)
             {
                 PCT_SendNotifyMsg(ZC_CODE_CLOUD_DISCONNECTED);                
                 return ZC_RET_OK;
             }
             
             ZC_StoreRegisterInfo(pu8Payload,1);
-            pstruContoller->u8MainState = PCT_STATE_ACCESS_NET; 
-   
-            if (PCT_TIMER_INVAILD != pstruContoller->u8RegisterTimer)
+            g_struProtocolController.u8MainState = PCT_STATE_ACCESS_NET; 
+            if (PCT_TIMER_INVAILD != g_struProtocolController.u8RegisterTimer)
             {
-                TIMER_StopTimer(pstruContoller->u8RegisterTimer);
-                pstruContoller->u8RegisterTimer = PCT_TIMER_INVAILD;
+                TIMER_StopTimer(g_struProtocolController.u8RegisterTimer);
+                g_struProtocolController.u8RegisterTimer = PCT_TIMER_INVAILD;
             }
             break;
         }
         case ZC_CODE_EXT_REBOOT:
         {
-            pstruContoller->pstruMoudleFun->pfunReboot();
+            g_struProtocolController.pstruMoudleFun->pfunReboot();
             break;
         }
         default:
@@ -266,7 +265,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             }
             break;
         case ZC_CODE_EXT:				
-            ZC_DealExtCode(&g_struProtocolController,pu8Payload);
+            ZC_DealExtCode(pu8Payload);
             break;
         default:
             if(PCT_STATE_CONNECT_CLOUD == g_struProtocolController.u8MainState)

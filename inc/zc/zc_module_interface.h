@@ -35,8 +35,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen);
 u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu8PayLoad);
 u32 ZC_AssemblePkt(u8 *pu8Data, u32 u32DataLen, u32 *pu32LeftLen);
 void ZC_Moudlefunc(u8 *pu8Data, u32 u32DataLen);
-
-
+u32 ZC_DealExtCode( u8 *pu8Data);
 #ifdef __cplusplus
 }
 #endif
