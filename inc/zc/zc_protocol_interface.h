@@ -131,9 +131,12 @@ typedef enum
 	
     ZC_CODE_OTA_CONFIRM = 35,
     ZC_CODE_UNBIND = 36,
-	
+
+    ZC_CODE_KLV_RSP = 60,
+    ZC_CODE_JSON_RSP = 61,
     ZC_CODE_EXT = 63, 
-    ZC_CODE_EVENT_BASE = 64
+    ZC_CODE_EVENT_BASE = 64,
+    ZC_CODE_REPORT_BASE = 200
 }ZC_MsgCode;
 
 /*ZCloud Message Ext code*/

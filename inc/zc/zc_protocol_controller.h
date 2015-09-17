@@ -41,12 +41,15 @@
 #define    PCT_TIMER_SENDHEART              (3)
 #define    PCT_TIMER_REGISTER               (4)
 #define    PCT_TIMER_SENDUBIND              (5)
+#define    PCT_TIMER_REBOOT                 (6)
+
 
 #define    PCT_TIMER_INTERVAL_RECONNECT     (1000)
 #define    PCT_TIMER_INTERVAL_HEART         (1000 * 60)
 #define    PCT_TIMER_INTERVAL_SENDMOUDLE    (1000)
 #define    PCT_TIMER_INTERVAL_REGISTER      (1000)
 #define    PCT_TIMER_INTERVAL_SENDUBIND     (1000)
+#define    PCT_TIMER_INTERVAL_REBOOT        (1000)
 
 
 #define    PCT_SEND_BC_MAX_NUM              (300)       /*5 minutes*/
@@ -144,6 +147,7 @@ typedef struct
     u8   u8AccessTimer;
     u8   u8SendUnbindTimer;
     
+    u8   u8RebootTimer;   
     u8   u8HeartTimer;
     u8   u8SendMoudleTimer;
     u8   u8RegisterTimer;

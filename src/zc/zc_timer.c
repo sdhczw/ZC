@@ -115,7 +115,9 @@ void TIMER_TimeoutAction(u8 u8TimerIndex)
         case PCT_TIMER_SENDUBIND:
             PCT_SendUnbindMsg();
             break;
-            
+         case PCT_TIMER_REBOOT:
+            g_struProtocolController.pstruMoudleFun->pfunReboot();
+            break;
     }
 }
 

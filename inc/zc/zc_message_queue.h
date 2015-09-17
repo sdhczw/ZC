@@ -13,7 +13,7 @@
 
 #include <zc_common.h>
 
-#define  MSG_QUEUE_MAXLEN               (2)
+#define  MSG_QUEUE_MAXLEN               (3)
 #define  MSG_BUFFER_MAXLEN              (600)
 
 #define  MSG_BUFFER_IDLE                (0)

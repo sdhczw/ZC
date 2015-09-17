@@ -123,6 +123,7 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
     g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8HeartTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8RegisterTimer = PCT_TIMER_INVAILD;
+    g_struProtocolController.u8RebootTimer = PCT_TIMER_INVAILD;
 
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
 
@@ -414,7 +415,7 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
     ZC_MessageHead *pstruMsg = (ZC_MessageHead *)pu8Msg;
 
     if ((PCT_TIMER_INVAILD != g_struProtocolController.u8SendMoudleTimer) &&
-        (pstruMsg->MsgCode < 200))
+        (pstruMsg->MsgCode < ZC_CODE_REPORT_BASE))
     {
         TIMER_StopTimer(g_struProtocolController.u8SendMoudleTimer);
         pstruBuffer = (MSG_Buffer *)g_struProtocolController.pu8SendMoudleBuffer;
@@ -891,7 +892,8 @@ void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
     {
         PCT_SendAckToCloud(pstruMsg->MsgId);
         PCT_SendNotifyMsg(ZC_CODE_ZOTA_END);
-        pstruContoller->pstruMoudleFun->pfunReboot();
+        pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_REBOOT, 
+            PCT_TIMER_REBOOT, &pstruContoller->u8RebootTimer);
     }
 }
 
@@ -926,9 +928,6 @@ void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
 
     /*Send to Moudle*/
     pstruContoller->pstruMoudleFun->pfunSendToMoudle((u8*)pstruMsg, pstruBuffer->u32Len);
-
-
-
 
     /*restart heart timer*/
     if (PCT_TIMER_INVAILD != pstruContoller->u8HeartTimer)
