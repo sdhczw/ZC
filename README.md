@@ -14,3 +14,5 @@ AbleCloud云端协议适配层
 ZOTA结束消息调用重启接口修改为异步调用
 
 将发送的buffer由2修改为3（MSG_QUEUE_MAXLEN）
+##5.AC_PCT_v1.0.04_20150919
+解决设备直连问题
