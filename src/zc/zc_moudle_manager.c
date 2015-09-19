@@ -38,7 +38,7 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
     u16 u16OptLen = 0;
     u16 crc = 0;
     u8 u8Iv[ZC_HS_SESSION_KEY_LEN];
-
+    u8 *pu8SendBuff = (u8*)pstruMsg;
     pstruSsession = pstruOptList->pstruSsession;
     u32ClientId = ZC_HTONL(pstruSsession->u32SsessionId);
     struOptList.pstruSsession = NULL;
@@ -60,9 +60,9 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
     {
         return ZC_RET_OK;
     }
-    
+
     EVENT_BuildOption(&struOptList, &pstruMsg->OptNum, 
-        g_u8MsgBuildBuffer + sizeof(ZC_SecHead) + sizeof(ZC_MessageHead), &u16OptLen);
+        pu8SendBuff + sizeof(ZC_SecHead) + sizeof(ZC_MessageHead), &u16OptLen);
     
     u16RealLen = ZC_HTONS(pstruMsg->Payloadlen)
                     - (sizeof(ZC_MessageOptHead) + sizeof(ZC_SsessionInfo));
@@ -71,16 +71,16 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
 
 
     /*copy msg*/
-    memcpy(g_u8MsgBuildBuffer + sizeof(ZC_SecHead) + u16OptLen + sizeof(ZC_MessageHead), 
+    memcpy(pu8SendBuff + sizeof(ZC_SecHead) + sizeof(ZC_MessageHead) + u16OptLen , 
         pu8PayLoad,
         (u16RealLen - u16OptLen));
 
-    crc = crc16_ccitt(g_u8MsgBuildBuffer + sizeof(ZC_MessageHead),u16RealLen);
+    crc = crc16_ccitt(pu8SendBuff + sizeof(ZC_SecHead)+ sizeof(ZC_MessageHead),u16RealLen);
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
 
     /*copy msg head*/
-    memcpy(g_u8MsgBuildBuffer + sizeof(ZC_SecHead), (u8*)pstruMsg, sizeof(ZC_MessageHead));
+    memmove(pu8SendBuff + sizeof(ZC_SecHead), (u8*)pstruMsg, sizeof(ZC_MessageHead));
 
     
     ZC_GetStoreInfor(ZC_GET_TYPE_TOKENKEY, &pu8Key);
@@ -88,24 +88,24 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
     u32CiperLen = MSG_BULID_BUFFER_MAXLEN;
     
     memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
-    AES_CBC_Encrypt(g_u8MsgBuildBuffer + sizeof(ZC_SecHead), u16RealLen + sizeof(ZC_MessageHead),
+    AES_CBC_Encrypt(pu8SendBuff + sizeof(ZC_SecHead), u16RealLen + sizeof(ZC_MessageHead),
         pu8Key, ZC_HS_SESSION_KEY_LEN,
         u8Iv, ZC_HS_SESSION_KEY_LEN,
-        g_u8MsgBuildBuffer + sizeof(ZC_SecHead), &u32CiperLen);
+        pu8SendBuff + sizeof(ZC_SecHead), &u32CiperLen);
     
     /*copy sec head*/
     struSecHead.u16TotalMsg = ZC_HTONS((u16)u32CiperLen);
     struSecHead.u8SecType = ZC_SEC_ALG_AES;
     
-    memcpy(g_u8MsgBuildBuffer, &struSecHead, sizeof(ZC_SecHead));
+    memcpy(pu8SendBuff, &struSecHead, sizeof(ZC_SecHead));
     
     
     /*msg len include sec head, msg head, payload len*/
     g_u8ClientSendLen = u32CiperLen + sizeof(ZC_SecHead);
     
     struParam.u8NeedPoll = 1;
-    
-    g_struProtocolController.pstruMoudleFun->pfunSendTcpData(u32ClientId, g_u8MsgBuildBuffer, g_u8ClientSendLen, &struParam);
+ 
+    g_struProtocolController.pstruMoudleFun->pfunSendTcpData(u32ClientId, pu8SendBuff, g_u8ClientSendLen, &struParam);
     
     g_u8ClientSendLen = 0;
     return ZC_RET_OK;
@@ -177,9 +177,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
     ZC_OptList struOptList;
     u16 u16OptLen= 0;
     u8 *pu8Payload = NULL;
-    
-    ZC_TraceData(pu8Data, u16DataLen);
-
+ 
     if (0 == u16DataLen)
     {
         return ZC_RET_ERROR;
