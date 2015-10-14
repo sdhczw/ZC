@@ -54,7 +54,7 @@ void ZC_ConfigInitPara()
     memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, g_u8DefaultTokenKey, ZC_HS_SESSION_KEY_LEN);
 
     g_struZcConfigDb.struConnection.u32MagicFlag = 0xFFFFFFFF;
-    g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = ZC_MAGIC_FLAG;
+    g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = 0xFFFFFFFF;
 }
 
 /*************************************************

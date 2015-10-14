@@ -31,7 +31,7 @@
 
 #define ZC_PASSWORD_MAX_LEN                 (64)
 
-#define ZC_CLOUD_ADDR_MAX_LEN               (20)
+#define ZC_CLOUD_ADDR_MAX_LEN               (24)
 #define ZC_CLOUD_KEY_MAX_LEN                (36)
 
 #define ZC_SERVER_ADDR_MAX_LEN               (4)
