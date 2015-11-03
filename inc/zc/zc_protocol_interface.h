@@ -264,6 +264,7 @@ typedef struct
 {
     u8 addr[4];
     u8 DeviceId[ZC_HS_DEVICE_ID_LEN];
+    u8 u8Domain[ZC_DOMAIN_LEN];
 }ZC_ClientQueryRsp;
 
 /*find eq*/

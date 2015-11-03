@@ -102,7 +102,7 @@ void ZC_SendClientQueryReq(u8 *pu8Msg, u16 u16RecvLen)
     struRsp.addr[2] = (g_u32GloablIp >> 8) & 0xff;
     struRsp.addr[1] = (g_u32GloablIp >> 16) & 0xff;
     struRsp.addr[0] = (g_u32GloablIp >> 24)  & 0xff;
-    
+    memcpy(struRsp.u8Domain, pu8Domain, ZC_DOMAIN_LEN);
     memcpy(struRsp.DeviceId, pu8DeviceId, ZC_HS_DEVICE_ID_LEN);
     EVENT_BuildMsg(ZC_CODE_CLIENT_QUERY_RSP, 0, g_u8MsgBuildBuffer, &u16Len, (u8*)&struRsp, sizeof(ZC_ClientQueryRsp));
     struParam.u8NeedPoll = 0;
