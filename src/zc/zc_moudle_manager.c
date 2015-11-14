@@ -250,7 +250,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             PCT_SendNotifyMsg(ZC_CODE_ZOTA_END);
             break;
         case ZC_CODE_REST:
-            g_struProtocolController.pstruMoudleFun->pfunRest();
+            ZC_ConfigReset();
             break;
         case ZC_CODE_CONFIG:
             ZC_ConfigPara(pu8Payload);
@@ -259,7 +259,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             ZC_ConfigUnBind(ZC_MAGIC_FLAG);
             if (*pu8Payload)
             {
-                g_struProtocolController.pstruMoudleFun->pfunRest();
+               ZC_ConfigReset();
             }
             break;
         case ZC_CODE_EXT:				

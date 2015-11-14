@@ -61,7 +61,8 @@ typedef struct
 
 typedef struct
 {
-    u32  u32UnBindFlag;//use if u32UnBindFlag is 1;     
+    u32  u32UnBindFlag;//use if u32UnBindFlag is 1;
+    u32  u32UnBcFlag;    
 }ZC_DeviceInfo;
 
 typedef struct 
@@ -89,6 +90,8 @@ void ZC_StoreConnectionInfo(u8 *pu8Ssid, u8 *pu8Password);
 void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data);
 void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort);
 void ZC_ConfigUnBind(u32 u32UnBindFlag);
+void ZC_ConfigReset(void);
+
 #ifdef __cplusplus
 }
 #endif

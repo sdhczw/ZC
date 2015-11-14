@@ -55,6 +55,7 @@ void ZC_ConfigInitPara()
 
     g_struZcConfigDb.struConnection.u32MagicFlag = 0xFFFFFFFF;
     g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = 0xFFFFFFFF;
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
 }
 
 /*************************************************
@@ -127,6 +128,7 @@ void ZC_StoreRegisterInfo(u8 *pu8Data,u8 u8RegisterFlag)
 *************************************************/
 void ZC_StoreTokenKey(u8 *pu8Data)
 {
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = ZC_MAGIC_FLAG;   
     memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, pu8Data, ZC_HS_SESSION_KEY_LEN);
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
@@ -206,7 +208,24 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data)
 void ZC_ConfigUnBind(u32 u32UnBindFlag)
 {
     g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = u32UnBindFlag; 
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;  
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
+}
+
+/*************************************************
+* Function: ZC_ConfigReset
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void ZC_ConfigReset()
+{
+    g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;            
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;   
+    g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8 *)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
+    g_struProtocolController.pstruMoudleFun->pfunRest();
 }
 
 /******************************* FILE END ***********************************/
