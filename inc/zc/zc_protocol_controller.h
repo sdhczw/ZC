@@ -93,7 +93,7 @@ typedef u32 (*pFunFirmwareUpdateFinish)(u32 u32TotalLen);
 typedef u32 (*pFunSendDataToMoudle)(u8 *pu8Data, u16 u16DataLen);
 typedef u32 (*pFunRecvDataFromMoudle)(u8 *pu8Data, u16 u16DataLen);
 typedef void (*pFunWriteFlashData)(u8 *pu8Data, u16 u16DataLen);
-
+typedef void (*pFunReadFlashData)(u8 *pu8Data, u16 u16DataLen);
 
 
 typedef u32 (*pFunConnectToCloud)(PTC_Connection *pstruConnection);
@@ -124,6 +124,7 @@ typedef struct
     pFunSetTimer                pfunSetTimer;
     pFunStopTimer               pfunStopTimer;
     pFunWriteFlashData          pfunWriteFlash;
+    pFunReadFlashData           pfunReadFlash;
     pFunGetMac                  pfunGetMac;
 
     pFunPrintf                  pfunPrintf;

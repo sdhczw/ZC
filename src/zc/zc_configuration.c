@@ -42,20 +42,26 @@ u8 g_u8DefaultTokenKey[ZC_HS_SESSION_KEY_LEN] =
 *************************************************/
 void ZC_ConfigInitPara()
 {
-    g_struZcConfigDb.u32MagicFlag = ZC_MAGIC_FLAG;
-    g_struZcConfigDb.struSwitchInfo.u32SecSwitch = 1;
-    g_struZcConfigDb.struSwitchInfo.u32TraceSwitch = 0;
-    g_struZcConfigDb.struSwitchInfo.u32WifiConfig = 0;
-    g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;
-    g_struZcConfigDb.struSwitchInfo.u16ServerPort = ZC_CLOUD_PORT;
+    u32 u32Crc;
+    g_struProtocolController.pstruMoudleFun->pfunReadFlash((u8 *)&g_struZcConfigDb,sizeof(g_struZcConfigDb));
+    u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
+    if(u32Crc!=g_struZcConfigDb.u32Crc)
+    {
+        g_struZcConfigDb.struSwitchInfo.u32SecSwitch = 1;
+        g_struZcConfigDb.struSwitchInfo.u32TraceSwitch = 0;
+        g_struZcConfigDb.struSwitchInfo.u32WifiConfig = 0;
+        g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;
+        g_struZcConfigDb.struSwitchInfo.u16ServerPort = ZC_CLOUD_PORT;
 
-    memcpy(g_struZcConfigDb.struCloudInfo.u8CloudAddr, "device.ablecloud.cn", ZC_CLOUD_ADDR_MAX_LEN);
-    memcpy(g_struZcConfigDb.struCloudInfo.u8CloudKey, g_u8DefaultCloudKey, ZC_CLOUD_KEY_MAX_LEN);
-    memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, g_u8DefaultTokenKey, ZC_HS_SESSION_KEY_LEN);
+        memcpy(g_struZcConfigDb.struCloudInfo.u8CloudAddr, "device.ablecloud.cn", ZC_CLOUD_ADDR_MAX_LEN);
+        memcpy(g_struZcConfigDb.struCloudInfo.u8CloudKey, g_u8DefaultCloudKey, ZC_CLOUD_KEY_MAX_LEN);
+        memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, g_u8DefaultTokenKey, ZC_HS_SESSION_KEY_LEN);
 
-    g_struZcConfigDb.struConnection.u32MagicFlag = 0xFFFFFFFF;
-    g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = 0xFFFFFFFF;
-    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
+        g_struZcConfigDb.struConnection.u32MagicFlag = 0xFFFFFFFF;
+        g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = 0xFFFFFFFF;
+        g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
+        ZC_Printf("no para, use default\n");
+    }
 }
 
 /*************************************************
@@ -84,7 +90,7 @@ void ZC_ConfigPara(u8 *pu8Data)
     
     memcpy(g_struZcConfigDb.struCloudInfo.u8CloudAddr, pstruConfig->u8CloudAddr, ZC_CLOUD_ADDR_MAX_LEN);
     memcpy(g_struZcConfigDb.struCloudInfo.u8CloudKey, pstruConfig->u8CloudKey, ZC_CLOUD_KEY_MAX_LEN);
-
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
@@ -130,6 +136,7 @@ void ZC_StoreTokenKey(u8 *pu8Data)
 {
     g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = ZC_MAGIC_FLAG;   
     memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, pu8Data, ZC_HS_SESSION_KEY_LEN);
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
@@ -146,7 +153,7 @@ void ZC_StoreConnectionInfo(u8 *pu8Ssid, u8 *pu8Password)
     g_struZcConfigDb.struConnection.u32MagicFlag = ZC_MAGIC_FLAG;
     memcpy(g_struZcConfigDb.struConnection.u8Ssid, pu8Ssid, ZC_SSID_MAX_LEN);
     memcpy(g_struZcConfigDb.struConnection.u8Password, pu8Password, ZC_PASSWORD_MAX_LEN);
-
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
@@ -164,6 +171,7 @@ void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort)
     g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 1;
     memcpy(&g_struZcConfigDb.struSwitchInfo.u32ServerIp, pu8ServerIp, ZC_SERVER_ADDR_MAX_LEN);
     memcpy(&g_struZcConfigDb.struSwitchInfo.u16ServerPort, pu8ServerPort, ZC_SERVER_PORT_MAX_LEN);
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
@@ -208,7 +216,8 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data)
 void ZC_ConfigUnBind(u32 u32UnBindFlag)
 {
     g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = u32UnBindFlag; 
-    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;  
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
@@ -223,7 +232,8 @@ void ZC_ConfigUnBind(u32 u32UnBindFlag)
 void ZC_ConfigReset()
 {
     g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;            
-    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;   
+    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8 *)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
     g_struProtocolController.pstruMoudleFun->pfunRest();
 }
