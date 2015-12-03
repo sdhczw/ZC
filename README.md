@@ -31,3 +31,5 @@ AbleCloud云端协议适配层
 3.增加pfunReadFlash回调函数
 
 4.增加ZC_ConfigReset函数重置wifi密码
+
+5.修复ZOTA END之后REBOOT时间笔误

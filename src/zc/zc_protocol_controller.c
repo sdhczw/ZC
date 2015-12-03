@@ -893,7 +893,7 @@ void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
         PCT_SendAckToCloud(pstruMsg->MsgId);
         PCT_SendNotifyMsg(ZC_CODE_ZOTA_END);
         pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_REBOOT, 
-            PCT_TIMER_REBOOT, &pstruContoller->u8RebootTimer);
+            PCT_TIMER_INTERVAL_REBOOT, &pstruContoller->u8RebootTimer);
     }
 }
 
