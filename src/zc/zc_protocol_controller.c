@@ -881,12 +881,13 @@ void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
     ZC_MessageHead *pstruMsg;
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
 
-
-    pstruContoller->u8SendMoudleMsgId = pstruMsg->MsgId;
-    /*start send timer*/
-    pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDMOUDLE, 
-        PCT_TIMER_INTERVAL_SENDMOUDLE, &pstruContoller->u8SendMoudleTimer);
-
+    if((pstruMsg->MsgCode < ZC_CODE_OTA_BEGIN)||(pstruMsg->MsgCode > ZC_CODE_OTA_END))
+    {
+        pstruContoller->u8SendMoudleMsgId = pstruMsg->MsgId;
+        /*start send timer*/
+        pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDMOUDLE, 
+            PCT_TIMER_INTERVAL_SENDMOUDLE, &pstruContoller->u8SendMoudleTimer);
+    }
     /*Send to Moudle*/
     pstruContoller->pstruMoudleFun->pfunSendToMoudle((u8*)pstruMsg, pstruBuffer->u32Len);
 
