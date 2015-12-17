@@ -216,7 +216,6 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data)
 void ZC_ConfigUnBind(u32 u32UnBindFlag)
 {
     g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = u32UnBindFlag; 
-    g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
     g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8*)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }

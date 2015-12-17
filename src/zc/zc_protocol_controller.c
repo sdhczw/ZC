@@ -117,7 +117,7 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
 
     MSG_Init();
     TIMER_Init();
-    
+    g_struProtocolController.u8SendMoudleMsgId = 0;
     g_struProtocolController.u8keyRecv = PCT_KEY_UNRECVED;
     g_struProtocolController.u8ReconnectTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
@@ -369,36 +369,12 @@ void PCT_ReconnectCloud(PTC_ProtocolCon *pstruContoller, u32 u32ReConnectTimer)
 * History:
 *************************************************/
 void PCT_SendMoudleTimeout(PTC_ProtocolCon *pstruProtocolController)
-{
-    MSG_Buffer *pstruBuffer;
-    ZC_MessageHead *pstruMsg;
-    pstruBuffer = (MSG_Buffer *)pstruProtocolController->pu8SendMoudleBuffer;
-    pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
-
-    /*Send to Moudle*/
-    pstruProtocolController->u8ReSendMoudleNum++;
-
-    ZC_Printf("send moudle timeout, data len = %d\n",pstruBuffer->u32Len);
+{      
+    ZC_Printf("send moudle timeout, MsgId = %d\n",pstruProtocolController->u8SendMoudleMsgId);
     
-    if (pstruProtocolController->u8ReSendMoudleNum > PCT_SENDMOUDLE_NUM)
-    {
-        pstruBuffer = (MSG_Buffer *)pstruProtocolController->pu8SendMoudleBuffer;
-        pstruBuffer->u32Len = 0;
-        pstruBuffer->u8Status = MSG_BUFFER_IDLE;
-        pstruProtocolController->u8SendMoudleTimer = PCT_TIMER_INVAILD;
-        pstruProtocolController->u8ReSendMoudleNum = 0;
-        PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
-        PCT_SendErrorMsg(pstruMsg->MsgId, NULL, 0);
-    }
-    else
-    {
-        pstruProtocolController->pstruMoudleFun->pfunSendToMoudle(pstruBuffer->u8MsgBuffer, 
-            pstruBuffer->u32Len);
-
-        pstruProtocolController->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDMOUDLE, 
-            PCT_TIMER_INTERVAL_SENDMOUDLE, &pstruProtocolController->u8SendMoudleTimer);
-    }
-
+    PCT_SendEmptyMsg(pstruProtocolController->u8SendMoudleMsgId, ZC_SEC_ALG_AES);
+    PCT_SendErrorMsg(pstruProtocolController->u8SendMoudleMsgId, NULL, 0);
+    pstruProtocolController->u8SendMoudleTimer = PCT_TIMER_INVAILD;  
 }
 /*************************************************
 * Function: PCT_HandleMoudleEvent
@@ -410,7 +386,6 @@ void PCT_SendMoudleTimeout(PTC_ProtocolCon *pstruProtocolController)
 *************************************************/
 void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
 {
-    MSG_Buffer *pstruBuffer;
     ZC_SecHead struHead;
     ZC_MessageHead *pstruMsg = (ZC_MessageHead *)pu8Msg;
 
@@ -418,12 +393,8 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
         (pstruMsg->MsgCode < ZC_CODE_REPORT_BASE))
     {
         TIMER_StopTimer(g_struProtocolController.u8SendMoudleTimer);
-        pstruBuffer = (MSG_Buffer *)g_struProtocolController.pu8SendMoudleBuffer;
-        pstruBuffer->u32Len = 0;
-        pstruBuffer->u8Status = MSG_BUFFER_IDLE;
         g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
-        g_struProtocolController.u8ReSendMoudleNum = 0;
-        PCT_SendEmptyMsg(((ZC_MessageHead *)pu8Msg)->MsgId, ZC_SEC_ALG_AES);
+        PCT_SendEmptyMsg(g_struProtocolController.u8SendMoudleMsgId, ZC_SEC_ALG_AES);
     }
 
     struHead.u8SecType = ZC_SEC_ALG_AES;
@@ -911,20 +882,10 @@ void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
 
 
-  
+    pstruContoller->u8SendMoudleMsgId = pstruMsg->MsgId;
     /*start send timer*/
     pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDMOUDLE, 
         PCT_TIMER_INTERVAL_SENDMOUDLE, &pstruContoller->u8SendMoudleTimer);
-
-    /*copy buffer, prepare for retx*/
-    memcpy((u8*)g_struRetxBuffer.u8MsgBuffer, pstruBuffer->u8MsgBuffer, 
-        pstruBuffer->u32Len);
-
-    g_struRetxBuffer.u32Len = pstruBuffer->u32Len;
-    g_struRetxBuffer.u8Status = MSG_BUFFER_FULL;
-
-    pstruContoller->pu8SendMoudleBuffer = (u8*)&g_struRetxBuffer;
-    pstruContoller->u8ReSendMoudleNum = 0;
 
     /*Send to Moudle*/
     pstruContoller->pstruMoudleFun->pfunSendToMoudle((u8*)pstruMsg, pstruBuffer->u32Len);

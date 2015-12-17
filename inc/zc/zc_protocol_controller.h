@@ -46,7 +46,7 @@
 
 #define    PCT_TIMER_INTERVAL_RECONNECT     (1000)
 #define    PCT_TIMER_INTERVAL_HEART         (1000 * 60)
-#define    PCT_TIMER_INTERVAL_SENDMOUDLE    (1000)
+#define    PCT_TIMER_INTERVAL_SENDMOUDLE    (5000)
 #define    PCT_TIMER_INTERVAL_REGISTER      (1000)
 #define    PCT_TIMER_INTERVAL_SENDUBIND     (1000)
 #define    PCT_TIMER_INTERVAL_REBOOT        (1000)
@@ -59,7 +59,6 @@
 #define    PCT_KEY_RECVED       (1)
 
 #define    PCT_TIMER_INVAILD        (0xFF)
-#define    PCT_SENDMOUDLE_NUM       (4)
 
 #define    PCT_OTA_REST_ON       (1)
 #define    PCT_OTA_REST_OFF       (0)
@@ -152,9 +151,8 @@ typedef struct
     u8   u8HeartTimer;
     u8   u8SendMoudleTimer;
     u8   u8RegisterTimer;
-    u8   u8ReSendMoudleNum;
     
-    u8   *pu8SendMoudleBuffer;
+    u8   u8SendMoudleMsgId;
     
     PTC_Connection struCloudConnection;
     PTC_Connection struClientConnection;
@@ -179,7 +177,6 @@ extern MSG_Buffer g_struClientBuffer;
 extern MSG_Queue  g_struRecvQueue;
 extern MSG_Buffer g_struSendBuffer[MSG_BUFFER_SEND_MAX_NUM];
 extern MSG_Queue  g_struSendQueue;
-extern MSG_Buffer g_struRetxBuffer;
 
 extern u8 g_u8MsgBuildBuffer[MSG_BULID_BUFFER_MAXLEN];
 
