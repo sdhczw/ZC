@@ -33,9 +33,12 @@ AbleCloud云端协议适配层
 4.增加ZC_ConfigReset函数重置wifi密码
 
 5.修复ZOTA END之后REBOOT时间笔误
-##10.AC_PCT_v1.0.09_20151217
+##10.AC_PCT_v1.0.00_20151217
 1.移除了串口重传
 
 2.设备解绑之后，不能直接绑定，必须通过配网绑定设备。
 
 3.修复OTA消息回复EMPTY的问题
+
+##11.AC_PCT_v1.0.10_20160224
+1.修复Android消息回复不回EMPTY消息的问题

@@ -389,8 +389,8 @@ void PCT_HandleMoudleEvent(u8 *pu8Msg, u16 u16DataLen)
     ZC_SecHead struHead;
     ZC_MessageHead *pstruMsg = (ZC_MessageHead *)pu8Msg;
 
-    if ((PCT_TIMER_INVAILD != g_struProtocolController.u8SendMoudleTimer) &&
-        (pstruMsg->MsgCode < ZC_CODE_REPORT_BASE))
+    if ((pstruMsg->MsgCode < ZC_CODE_REPORT_BASE)&&
+        (pstruMsg->MsgCode > ZC_CODE_OTA_CONFIRM))
     {
         TIMER_StopTimer(g_struProtocolController.u8SendMoudleTimer);
         g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
