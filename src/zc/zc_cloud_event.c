@@ -82,8 +82,8 @@ u32  EVENT_BuildMsg(u8 u8MsgCode, u8 u8MsgId, u8 *pu8Msg, u16 *pu16Len, u8 *pu8P
     pstruMsg->MsgId = u8MsgId;  
     pstruMsg->Payloadlen = ZC_HTONS(u16PayloadLen);
     pstruMsg->Version = ZC_VERSION;
-    pstruMsg->OptNum = 0;  
-    crc = crc16_ccitt(pu8Payload,u16PayloadLen);
+    pstruMsg->OptNum = 0;
+    crc = crc16_ccitt((u8*)(pstruMsg + 1),u16PayloadLen);
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
 
@@ -120,15 +120,12 @@ u32  EVENT_BuildBcMsg(u8 *pu8Msg, u16 *pu16Len)
     pstruMsg->Payloadlen = ZC_HTONS(sizeof(ZC_BroadCastInfo) + u8DeviceIdLen);
     pstruMsg->Version = ZC_VERSION;
     pstruMsg->OptNum = 0;      
-
-
     crc = crc16_ccitt((u8*)(pstruMsg + 1), sizeof(ZC_BroadCastInfo));
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
 
     *pu16Len = (u16)sizeof(ZC_MessageHead) + sizeof(ZC_BroadCastInfo) + u8DeviceIdLen;
     return ZC_RET_OK;
-
 }
 
 /*************************************************
