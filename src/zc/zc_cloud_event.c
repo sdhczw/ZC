@@ -120,7 +120,7 @@ u32  EVENT_BuildBcMsg(u8 *pu8Msg, u16 *pu16Len)
     pstruMsg->Payloadlen = ZC_HTONS(sizeof(ZC_BroadCastInfo) + u8DeviceIdLen);
     pstruMsg->Version = ZC_VERSION;
     pstruMsg->OptNum = 0;      
-    crc = crc16_ccitt((u8*)(pstruMsg + 1), sizeof(ZC_BroadCastInfo));
+    crc = crc16_ccitt((u8*)(pstruMsg + 1), sizeof(ZC_BroadCastInfo)+ u8DeviceIdLen);
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
 
