@@ -26,13 +26,13 @@ void ZC_SendBc()
     u16 u16Len;
     static int sleepcount = 0;
     ZC_SendParam struParam;
-#if 0
+
     if (PCT_STATE_CONNECT_CLOUD != g_struProtocolController.u8MainState)
     {
         sleepcount = 0;
         return;
     }
-#endif
+
     if (ZC_MAGIC_FLAG == g_struZcConfigDb.struDeviceInfo.u32UnBcFlag)
     {
         sleepcount = 0;
