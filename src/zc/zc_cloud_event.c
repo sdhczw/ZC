@@ -75,6 +75,8 @@ u32  EVENT_BuildMsg(u8 u8MsgCode, u8 u8MsgId, u8 *pu8Msg, u16 *pu16Len, u8 *pu8P
 {
     ZC_MessageHead *pstruMsg = NULL;
     u16 crc = 0;
+    
+    memmove((pu8Msg + sizeof(ZC_MessageHead)), pu8Payload, u16PayloadLen);
     pstruMsg = (ZC_MessageHead *)pu8Msg;
     pstruMsg->MsgCode = u8MsgCode;
     pstruMsg->MsgId = u8MsgId;  
@@ -84,7 +86,6 @@ u32  EVENT_BuildMsg(u8 u8MsgCode, u8 u8MsgId, u8 *pu8Msg, u16 *pu16Len, u8 *pu8P
     crc = crc16_ccitt(pu8Payload,u16PayloadLen);
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
-    memcpy((pu8Msg + sizeof(ZC_MessageHead)), pu8Payload, u16PayloadLen);
 
     *pu16Len = (u16)sizeof(ZC_MessageHead) + u16PayloadLen;
     return ZC_RET_OK;
@@ -100,29 +101,32 @@ u32  EVENT_BuildMsg(u8 u8MsgCode, u8 u8MsgId, u8 *pu8Msg, u16 *pu16Len, u8 *pu8P
 *************************************************/
 u32  EVENT_BuildBcMsg(u8 *pu8Msg, u16 *pu16Len)
 {
-    ZC_BroadCastInfo struBc;
+    ZC_BroadCastInfo *pstruBc = (ZC_BroadCastInfo *)(pu8Msg + sizeof(ZC_MessageHead));
     u8 *pu8DeviceId;
+    u8 *pu8Domain;
     u16 crc = 0;
+    u8 u8DeviceIdLen = 0;
     ZC_MessageHead *pstruMsg = NULL;
+
+    ZC_GetStoreInfor(ZC_GET_TYPE_DEVICEID, &pu8DeviceId);
+    ZC_GetStoreInfor(ZC_GET_TYPE_DOMAIN, &pu8Domain);
+    u8DeviceIdLen = strlen((const char *)pu8DeviceId);
+    memcpy(pstruBc->DeviceId, pu8DeviceId, u8DeviceIdLen);
+    memcpy(pstruBc->u8Domain, pu8Domain, ZC_DOMAIN_LEN);
+    
     pstruMsg = (ZC_MessageHead *)pu8Msg;
     pstruMsg->MsgCode = ZC_CODE_BC_INFO;
     pstruMsg->MsgId = 0;
-    pstruMsg->Payloadlen = ZC_HTONS(sizeof(ZC_BroadCastInfo));
+    pstruMsg->Payloadlen = ZC_HTONS(sizeof(ZC_BroadCastInfo) + u8DeviceIdLen);
     pstruMsg->Version = ZC_VERSION;
     pstruMsg->OptNum = 0;      
-    ZC_GetStoreInfor(ZC_GET_TYPE_DEVICEID, &pu8DeviceId);
 
-    memcpy(struBc.RandMsg, g_struProtocolController.RandMsg, ZC_HS_MSG_LEN);
-    memcpy(struBc.DeviceId, pu8DeviceId, ZC_HS_DEVICE_ID_LEN);
-    memcpy(struBc.u8Domain, pu8DeviceId + ZC_HS_DEVICE_ID_LEN, ZC_DOMAIN_LEN);
-
-    memcpy((pu8Msg + sizeof(ZC_MessageHead)), &struBc, sizeof(ZC_BroadCastInfo));
 
     crc = crc16_ccitt((u8*)(pstruMsg + 1), sizeof(ZC_BroadCastInfo));
     pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
     pstruMsg->TotalMsgCrc[1]=(crc&0xff);
 
-    *pu16Len = (u16)sizeof(ZC_MessageHead)+sizeof(ZC_BroadCastInfo);
+    *pu16Len = (u16)sizeof(ZC_MessageHead) + sizeof(ZC_BroadCastInfo) + u8DeviceIdLen;
     return ZC_RET_OK;
 
 }

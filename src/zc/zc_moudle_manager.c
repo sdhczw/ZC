@@ -119,12 +119,15 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
 * Parameter: 
 * History:
 *************************************************/
-u32 ZC_DealExtCode(u8 *pu8Data)
+u32 ZC_DealExtCode(u8 *pu8Data, u16 u16DataLen)
 {
     ZC_ExtMessageHead *pstruExtMsg;
     u8 *pu8Payload = NULL; 
+    u16 u16PayloadLen;
+    
     pstruExtMsg = (ZC_ExtMessageHead *)pu8Data;
     pu8Payload = pu8Data + sizeof(ZC_ExtMessageHead);
+    u16PayloadLen = u16DataLen - sizeof(ZC_ExtMessageHead);
     switch(pstruExtMsg->ExtMsgCode)
     {
         case ZC_CODE_EXT_REGSITER:
@@ -142,7 +145,7 @@ u32 ZC_DealExtCode(u8 *pu8Data)
                 return ZC_RET_OK;
             }
             
-            ZC_StoreRegisterInfo(pu8Payload,1);
+            ZC_StoreRegisterInfo(pu8Payload,u16PayloadLen,1);
             g_struProtocolController.u8MainState = PCT_STATE_ACCESS_NET; 
             if (PCT_TIMER_INVAILD != g_struProtocolController.u8RegisterTimer)
             {
@@ -220,7 +223,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
                 return ZC_RET_OK;
             }
             
-            ZC_StoreRegisterInfo(pu8Payload,0);
+            ZC_StoreRegisterInfo(pu8Payload, ZC_HTONS(pstruMsg->Payloadlen),0);
             g_struProtocolController.u8MainState = PCT_STATE_ACCESS_NET; 
             
             if (PCT_TIMER_INVAILD != g_struProtocolController.u8RegisterTimer)
@@ -263,7 +266,7 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             }
             break;
         case ZC_CODE_EXT:				
-            ZC_DealExtCode(pu8Payload);
+            ZC_DealExtCode(pu8Payload,pstruMsg->Payloadlen);
             break;
         default:
             if(PCT_STATE_CONNECT_CLOUD == g_struProtocolController.u8MainState)

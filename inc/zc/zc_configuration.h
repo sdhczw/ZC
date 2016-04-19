@@ -15,9 +15,10 @@
 
 #define    ZC_GET_TYPE_CLOUDKEY    (0)
 #define    ZC_GET_TYPE_DEVICEID    (1)
-#define    ZC_GET_TYPE_PRIVATEKEY  (2)
-#define    ZC_GET_TYPE_VESION      (3)
-#define    ZC_GET_TYPE_TOKENKEY    (4)
+#define    ZC_GET_TYPE_DOMAIN      (2)
+#define    ZC_GET_TYPE_PRIVATEKEY  (3)
+#define    ZC_GET_TYPE_VESION      (4)
+#define    ZC_GET_TYPE_TOKENKEY    (5)
 
 #define    ZC_MAGIC_FLAG (0x04083207)
 
@@ -48,7 +49,8 @@ typedef struct
 typedef struct 
 {
     u8 u8PrivateKey[ZC_MODULE_KEY_LEN];
-    u8 u8DeviciId[ZC_HS_DEVICE_ID_LEN + ZC_DOMAIN_LEN];
+    u8 u8DeviceId[ZC_HS_DEVICE_ID_LEN];
+    u8 u8Domain[ZC_DOMAIN_LEN];
     u8 u8EqVersion[ZC_EQVERSION_LEN];
 }ZC_RegisterInfo;
 
@@ -84,7 +86,7 @@ extern "C" {
 
 void ZC_ConfigInitPara(void);
 void ZC_ConfigPara(u8 *pu8Data);
-void ZC_StoreRegisterInfo(u8 *pu8Data,u8 u8RegisterFlag);
+void ZC_StoreRegisterInfo(u8 *pu8Data,u16 u16DataLen,u8 u8RegisterFlag);
 void ZC_StoreTokenKey(u8 *pu8Data);
 void ZC_StoreConnectionInfo(u8 *pu8Ssid, u8 *pu8Password);
 void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data);

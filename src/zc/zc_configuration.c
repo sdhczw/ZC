@@ -102,24 +102,26 @@ void ZC_ConfigPara(u8 *pu8Data)
 * Parameter: 
 * History:
 *************************************************/
-void ZC_StoreRegisterInfo(u8 *pu8Data,u8 u8RegisterFlag)
+void ZC_StoreRegisterInfo(u8 *pu8Data,u16 u16DataLen,u8 u8RegisterFlag)
 {
     ZC_RegisterReq *pstruRegisterMsg;
     u8 u8Mac[ZC_SERVER_MAC_LEN];
+    u16 u16DeviceIdLen = u16DataLen - ZC_EQVERSION_LEN - ZC_MODULE_KEY_LEN - ZC_DOMAIN_LEN;
     pstruRegisterMsg = (ZC_RegisterReq *)pu8Data;
-    
+
+    memset(g_struRegisterInfo.u8DeviceId,0,ZC_HS_DEVICE_ID_LEN+ZC_DOMAIN_LEN);
     memcpy(g_struRegisterInfo.u8PrivateKey, pstruRegisterMsg->u8ModuleKey, ZC_MODULE_KEY_LEN);
-    if(u8RegisterFlag)
+    if((u8RegisterFlag)||(0 == u16DeviceIdLen))
 	{
-        memset(g_struRegisterInfo.u8DeviciId, '0', ZC_HS_DEVICE_ID_LEN);
+        memset(g_struRegisterInfo.u8DeviceId, '0', ZC_HS_OLDDEVICE_ID_LEN);
 		g_struProtocolController.pstruMoudleFun->pfunGetMac(u8Mac);
-		memcpy(g_struRegisterInfo.u8DeviciId + (ZC_HS_DEVICE_ID_LEN - ZC_SERVER_MAC_LEN), u8Mac, ZC_SERVER_MAC_LEN);
+		memcpy(g_struRegisterInfo.u8DeviceId + (ZC_HS_OLDDEVICE_ID_LEN - ZC_SERVER_MAC_LEN), u8Mac, ZC_SERVER_MAC_LEN);
 	}
 	else
 	{
-		memcpy(g_struRegisterInfo.u8DeviciId, pstruRegisterMsg->u8DeviceId, ZC_HS_DEVICE_ID_LEN);
+		memcpy(g_struRegisterInfo.u8DeviceId, pstruRegisterMsg->u8DeviceId, u16DeviceIdLen);
 	}
-    memcpy(g_struRegisterInfo.u8DeviciId + ZC_HS_DEVICE_ID_LEN, pstruRegisterMsg->u8Domain, ZC_DOMAIN_LEN);
+    memcpy(g_struRegisterInfo.u8DeviceId + ZC_HS_DEVICE_ID_LEN, pstruRegisterMsg->u8Domain, ZC_DOMAIN_LEN);
     memcpy(g_struRegisterInfo.u8EqVersion, pstruRegisterMsg->u8EqVersion, ZC_EQVERSION_LEN);
 }
 
@@ -191,7 +193,10 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data)
             *pu8Data = g_struZcConfigDb.struCloudInfo.u8CloudKey;
             break;
         case ZC_GET_TYPE_DEVICEID:
-            *pu8Data = g_struRegisterInfo.u8DeviciId;
+            *pu8Data = g_struRegisterInfo.u8DeviceId;
+            break;
+        case ZC_GET_TYPE_DOMAIN:
+            *pu8Data = g_struRegisterInfo.u8Domain;
             break;
         case ZC_GET_TYPE_PRIVATEKEY:
             *pu8Data = g_struRegisterInfo.u8PrivateKey;

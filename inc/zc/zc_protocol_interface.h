@@ -12,7 +12,8 @@
 #include <zc_common.h>
 
 #define ZC_HS_MSG_LEN                       (32)
-#define ZC_HS_DEVICE_ID_LEN                 (16)
+#define ZC_HS_DEVICE_ID_LEN                 (65)/* add a space for string '/0'*/
+#define ZC_HS_OLDDEVICE_ID_LEN              (16)/*for 16 byte old  device id*/
 #define ZC_HS_SESSION_KEY_LEN               (16)
 #define ZC_HS_SESSION_IV_LEN                (16)
 #define ZC_MODULE_KEY_LEN                   (112)
@@ -166,8 +167,8 @@ encrypt by cloud public key*/
 typedef struct
 {
     u8 RandMsg[ZC_HS_MSG_LEN];
-    u8 DeviceId[ZC_HS_DEVICE_ID_LEN];
     u8 u8Domain[ZC_DOMAIN_LEN];
+    u8 DeviceId[];
 }ZC_HandShakeMsg1;
 
 /*Second handshake msg, send by cloud to moudle, 
@@ -217,7 +218,7 @@ typedef struct
     u8  u8EqVersion[ZC_EQVERSION_LEN];      //eq vision
     u8  u8ModuleKey[ZC_MODULE_KEY_LEN];
     u8  u8Domain[ZC_DOMAIN_LEN];
-    u8  u8DeviceId[ZC_HS_DEVICE_ID_LEN];
+    u8  u8DeviceId[];
 }ZC_RegisterReq;
 
 /*msg code: ZC_CODE_EXT_REGSITER*/
@@ -255,16 +256,15 @@ typedef struct
 typedef struct
 {
     u8 u8Domain[ZC_DOMAIN_LEN];
-    u8 DeviceId[ZC_HS_DEVICE_ID_LEN];
-    u8 RandMsg[ZC_HS_MSG_LEN];
+    u8 DeviceId[];
 }ZC_BroadCastInfo;
 
 /*BC info£¬ send after connect with cloud£¬ in PCT_SEND_BC_MAX_NUM*/
 typedef struct
 {
     u8 addr[4];
-    u8 DeviceId[ZC_HS_DEVICE_ID_LEN];
     u8 u8Domain[ZC_DOMAIN_LEN];
+    u8 DeviceId[];
 }ZC_ClientQueryRsp;
 
 /*find eq*/

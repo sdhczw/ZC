@@ -187,10 +187,11 @@ void PCT_SendCloudAccessMsg1(PTC_ProtocolCon *pstruContoller)
 {
     u16 u16Len;
     ZC_SecHead struSechead;
-    ZC_HandShakeMsg1 struMsg1;
+    ZC_HandShakeMsg1 *pstruMsg1 = (ZC_HandShakeMsg1 *)g_u8MsgBuildBuffer;
     u8 *pu8DeviceId;
+    u8 *pu8Domain;
     u32 u32RetVal;
-    
+    u8 u8DeviceIdLen;
     /*stop reconnection timer*/
     if (PCT_TIMER_INVAILD != pstruContoller->u8ReconnectTimer)
     {
@@ -200,15 +201,16 @@ void PCT_SendCloudAccessMsg1(PTC_ProtocolCon *pstruContoller)
     }
     
     ZC_GetStoreInfor(ZC_GET_TYPE_DEVICEID, &pu8DeviceId);
-    
-    memcpy(struMsg1.RandMsg, pstruContoller->RandMsg, ZC_HS_MSG_LEN);
-    memcpy(struMsg1.DeviceId, pu8DeviceId, ZC_HS_DEVICE_ID_LEN);
-    memcpy(struMsg1.u8Domain, pu8DeviceId + ZC_HS_DEVICE_ID_LEN, ZC_DOMAIN_LEN);
+    ZC_GetStoreInfor(ZC_GET_TYPE_DOMAIN, &pu8Domain);
+    u8DeviceIdLen = strlen((const char *)pu8DeviceId);
+    memcpy(pstruMsg1->RandMsg, pstruContoller->RandMsg, ZC_HS_MSG_LEN);
+    memcpy(pstruMsg1->DeviceId, pu8DeviceId, u8DeviceIdLen);
+    memcpy(pstruMsg1->u8Domain, pu8Domain, ZC_DOMAIN_LEN);
 
    
     EVENT_BuildMsg(ZC_CODE_HANDSHAKE_1, 1, g_u8MsgBuildBuffer, &u16Len, 
-        (u8*)&struMsg1, sizeof(ZC_HandShakeMsg1));
-    
+        (u8*)pstruMsg1, sizeof(ZC_HandShakeMsg1)+u8DeviceIdLen);
+
     struSechead.u8SecType = ZC_SEC_ALG_RSA;
     struSechead.u16TotalMsg = ZC_HTONS(u16Len);
     struSechead.u8Resver = 0x5A;
