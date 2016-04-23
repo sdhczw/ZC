@@ -148,6 +148,8 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
 
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
 
+    g_struProtocolController.u32LocalTokenFlag == PCT_LOCAL_DYNAMIC_TOKEN;
+
     ZC_ClientInit();
 }
 /*************************************************
@@ -1224,13 +1226,7 @@ u32 PCT_SendMsgToCloud(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
 * History:
 *************************************************/
 void PCT_SetDefaultToken(void)
-{
-    if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag 
-        || PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
-    {
-        return;
-    }
-    
+{   
     u8 *pu8DeviceId;
     u8 u8DeviceIdLen;
     
@@ -1258,7 +1254,6 @@ void PCT_SetDefaultToken(void)
                 pu8DeviceId,
                 ZC_HS_SESSION_KEY_LEN);
     }
-
     return;
 }
 /******************************* FILE END ***********************************/
