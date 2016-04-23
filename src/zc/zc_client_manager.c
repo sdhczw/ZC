@@ -219,15 +219,29 @@ void ZC_RecvDataFromClient(u32 ClientId, u8 *pu8Data, u32 u32DataLen)
         
         EVENT_BuildMsg(ZC_CODE_ERR, 0, g_u8MsgBuildBuffer + sizeof(ZC_SecHead), &u16Len, 
             NULL, 0);
-        memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
-        AES_CBC_Encrypt(g_u8MsgBuildBuffer + sizeof(ZC_SecHead), u16Len,
-            pu8Key, ZC_HS_SESSION_KEY_LEN,
-            u8Iv, ZC_HS_SESSION_KEY_LEN,
-            g_u8MsgBuildBuffer + sizeof(ZC_SecHead), &u32CiperLen);
+        
+        if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+        {
+            pstruHead->u8SecType = ZC_SEC_ALG_NONE;
+            pstruHead->u16TotalMsg = ZC_HTONS(u16Len);
+            u32CiperLen = u16Len;
+        }
+        else if (PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag
+            || PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+        {
+            memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
+            AES_CBC_Encrypt(g_u8MsgBuildBuffer + sizeof(ZC_SecHead), u16Len,
+                pu8Key, ZC_HS_SESSION_KEY_LEN,
+                u8Iv, ZC_HS_SESSION_KEY_LEN,
+                g_u8MsgBuildBuffer + sizeof(ZC_SecHead), &u32CiperLen);
 
-        pstruHead->u8SecType = ZC_SEC_ALG_AES;
-        pstruHead->u16TotalMsg = ZC_HTONS((u16)u32CiperLen);
-
+            pstruHead->u8SecType = ZC_SEC_ALG_AES;
+            pstruHead->u16TotalMsg = ZC_HTONS((u16)u32CiperLen);        
+        }
+        else
+        {
+            return;
+        }
         struParam.u8NeedPoll = 0;            
         g_struProtocolController.pstruMoudleFun->pfunSendTcpData(ClientId, g_u8MsgBuildBuffer, 
             u32CiperLen + sizeof(ZC_SecHead), &struParam);
@@ -238,7 +252,7 @@ void ZC_RecvDataFromClient(u32 ClientId, u8 *pu8Data, u32 u32DataLen)
     ZC_SetClientBusy(ClientId);
     
     u32RetVal = MSG_RecvData(&g_struClientBuffer, pu8Data, u32DataLen);
-    if ((MSG_BUFFER_FULL == g_struClientBuffer.u8Status)&&(ZC_RET_OK == u32RetVal))
+    if ((MSG_BUFFER_FULL == g_struClientBuffer.u8Status) && (ZC_RET_OK == u32RetVal))
     {  
         do
         {
@@ -250,10 +264,25 @@ void ZC_RecvDataFromClient(u32 ClientId, u8 *pu8Data, u32 u32DataLen)
             }
          
             memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
-            AES_CBC_Decrypt(g_struClientBuffer.u8MsgBuffer + sizeof(ZC_SecHead), ZC_HTONS(pstruHead->u16TotalMsg), 
-                pu8Key, ZC_HS_SESSION_KEY_LEN, 
-                u8Iv, ZC_HS_SESSION_KEY_LEN, 
-                g_u8MsgBuildBuffer, &u32CiperLen);
+
+            if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+            {
+                memcpy(g_u8MsgBuildBuffer, 
+                    g_struClientBuffer.u8MsgBuffer + sizeof(ZC_SecHead),
+                    ZC_HTONS(pstruHead->u16TotalMsg));
+            }
+            else if (PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag
+                || PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+            {
+                AES_CBC_Decrypt(g_struClientBuffer.u8MsgBuffer + sizeof(ZC_SecHead), ZC_HTONS(pstruHead->u16TotalMsg), 
+                    pu8Key, ZC_HS_SESSION_KEY_LEN, 
+                    u8Iv, ZC_HS_SESSION_KEY_LEN, 
+                    g_u8MsgBuildBuffer, &u32CiperLen);
+            }
+            else 
+            {
+                return;
+            }
 
             pstruMsg = (ZC_MessageHead*)(g_u8MsgBuildBuffer);
             if(ZC_RET_ERROR == PCT_CheckCrc(pstruMsg->TotalMsgCrc, (u8 *)(pstruMsg + 1), ZC_HTONS(pstruMsg->Payloadlen)))
@@ -291,9 +320,9 @@ void ZC_RecvDataFromClient(u32 ClientId, u8 *pu8Data, u32 u32DataLen)
             u16Len += ZC_HTONS(pstruMsg->Payloadlen) - (sizeof(ZC_MessageOptHead) + sizeof(struSessionMsg));     
             g_struClientBuffer.u32Len = u16Len;
             crc = crc16_ccitt(g_struClientBuffer.u8MsgBuffer+sizeof(ZC_MessageHead),u16Len-sizeof(ZC_MessageHead));
-            pstruMsg =  (ZC_MessageHead*)(g_struClientBuffer.u8MsgBuffer);
-            pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
-            pstruMsg->TotalMsgCrc[1]=(crc&0xff);
+            pstruMsg = (ZC_MessageHead*)(g_struClientBuffer.u8MsgBuffer);
+            pstruMsg->TotalMsgCrc[0] = (crc & 0xff00) >> 8;
+            pstruMsg->TotalMsgCrc[1] = (crc & 0xff);
 
             ZC_TraceData(g_struClientBuffer.u8MsgBuffer, g_struClientBuffer.u32Len);
             

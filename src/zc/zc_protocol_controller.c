@@ -20,6 +20,27 @@ PTC_ProtocolCon  g_struProtocolController;
 extern ZC_Timer g_struTimer[ZC_TIMER_MAX_NUM];
 
 /*************************************************
+* Function: PCT_SetLocalLevel
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_SetLocalLevel(PCT_LOCAL_LEVEL Etoken)
+{   
+    /* 2?¨ºy?¨¬2¨¦ */
+    if (PCT_LOCAL_NONE_TOKEN != Etoken
+        && PCT_LOCAL_STATIC_TOKEN != Etoken
+         && PCT_LOCAL_DYNAMIC_TOKEN != Etoken)
+    {
+        ZC_Printf("PCT_SetLocalLevel error, Etoken is %d\n", Etoken);
+        return;
+    }
+    g_struProtocolController.u32LocalTokenFlag = Etoken;
+    return;
+}
+/*************************************************
 * Function: PCT_CheckCrc
 * Description: 
 * Author: cxy 
@@ -913,6 +934,11 @@ void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
 *************************************************/
 void PCT_SetTokenKey(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer)
 {
+    if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag 
+        || PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+    {
+        return;
+    }
     ZC_MessageHead *pstruMsg;
     ZC_TokenSetReq *pstruSetKey;
 
@@ -1189,6 +1215,51 @@ u32 PCT_SendMsgToCloud(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
 
     return ZC_RET_ERROR;
 }
+/*************************************************
+* Function: PCT_SendMsgToCloud
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_SetDefaultToken(void)
+{
+    if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag 
+        || PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+    {
+        return;
+    }
+    
+    u8 *pu8DeviceId;
+    u8 u8DeviceIdLen;
+    
+    memset(g_struZcConfigDb.struCloudInfo.u8TokenKey, '0' , ZC_HS_SESSION_KEY_LEN);
 
+    ZC_GetStoreInfor(ZC_GET_TYPE_DEVICEID, &pu8DeviceId);
+
+    u8DeviceIdLen = strlen((const char *)pu8DeviceId);
+
+    if (u8DeviceIdLen < PCT_DEVICE_MIN_LEN || u8DeviceIdLen > PCT_DEVICE_MAX_LEN)
+    {
+        ZC_Printf("PCT_SetDefaultToken error: u8DeviceIdLen is %d\n", u8DeviceIdLen);
+        return;
+    }
+    /* 11?¨¬AES Key */
+    if (u8DeviceIdLen <= ZC_HS_SESSION_KEY_LEN)
+    {
+        memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey + ZC_HS_SESSION_KEY_LEN - u8DeviceIdLen,
+                pu8DeviceId,
+                u8DeviceIdLen);
+    }
+    else if (u8DeviceIdLen > ZC_HS_SESSION_KEY_LEN)
+    {
+        memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey,
+                pu8DeviceId,
+                ZC_HS_SESSION_KEY_LEN);
+    }
+
+    return;
+}
 /******************************* FILE END ***********************************/
 

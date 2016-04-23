@@ -63,7 +63,15 @@
 #define    PCT_OTA_REST_ON       (1)
 #define    PCT_OTA_REST_OFF       (0)
 
+#define    PCT_DEVICE_MIN_LEN      (8)
+#define    PCT_DEVICE_MAX_LEN      (64)
 
+typedef enum
+{
+    PCT_LOCAL_NONE_TOKEN = 0,
+    PCT_LOCAL_STATIC_TOKEN,
+    PCT_LOCAL_DYNAMIC_TOKEN
+}PCT_LOCAL_LEVEL;
 
 
 typedef struct
@@ -153,6 +161,7 @@ typedef struct
     u8   u8RegisterTimer;
     
     u8   u8SendMoudleMsgId;
+    u32  u32LocalTokenFlag;
     
     PTC_Connection struCloudConnection;
     PTC_Connection struClientConnection;
@@ -186,6 +195,7 @@ extern ZC_ClientInfo g_struClientInfo;
 #ifdef __cplusplus
 extern "C" {
 #endif
+void PCT_SetLocalLevel(PCT_LOCAL_LEVEL Etoken);
 u32 PCT_CheckCrc(u8 *pu8Crc, u8 *pu8Data, u16 u16Len);
 void PCT_SendNotifyMsg(u8 u8NotifyCode);
 void PCT_SendHeartMsg(void);
@@ -217,6 +227,7 @@ void PCT_HandleOtaFileEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruB
 void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_SendUnbindMsg(void);
+void PCT_SetDefaultToken(void);
 
 #ifdef __cplusplus
 }

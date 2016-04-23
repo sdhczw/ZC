@@ -123,6 +123,8 @@ void ZC_StoreRegisterInfo(u8 *pu8Data,u16 u16DataLen,u8 u8RegisterFlag)
 	}
     memcpy(g_struRegisterInfo.u8DeviceId + ZC_HS_DEVICE_ID_LEN, pstruRegisterMsg->u8Domain, ZC_DOMAIN_LEN);
     memcpy(g_struRegisterInfo.u8EqVersion, pstruRegisterMsg->u8EqVersion, ZC_EQVERSION_LEN);
+
+    PCT_SetDefaultToken();
 }
 
 
