@@ -148,7 +148,7 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
 
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
 
-    g_struProtocolController.u32LocalTokenFlag == PCT_LOCAL_DYNAMIC_TOKEN;
+    g_struProtocolController.u32LocalTokenFlag = PCT_LOCAL_DYNAMIC_TOKEN;
 
     ZC_ClientInit();
 }
