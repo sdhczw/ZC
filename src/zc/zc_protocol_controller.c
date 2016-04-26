@@ -148,7 +148,7 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
 
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
 
-    g_struProtocolController.u32LocalTokenFlag == PCT_LOCAL_DYNAMIC_TOKEN;
+    g_struProtocolController.u32LocalTokenFlag = PCT_LOCAL_DYNAMIC_TOKEN;
 
     ZC_ClientInit();
 }
@@ -936,18 +936,16 @@ void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
 *************************************************/
 void PCT_SetTokenKey(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer)
 {
-    if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag 
-        || PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
-    {
-        return;
-    }
     ZC_MessageHead *pstruMsg;
     ZC_TokenSetReq *pstruSetKey;
 
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
     pstruSetKey = (ZC_TokenSetReq *)(pstruMsg + 1);
 
-    ZC_StoreTokenKey(pstruSetKey->TokenKey);
+    if (PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+    {
+        ZC_StoreTokenKey(pstruSetKey->TokenKey);
+    }
 
     PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
     PCT_SendAckToCloud(pstruMsg->MsgId);
