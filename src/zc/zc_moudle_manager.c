@@ -242,16 +242,6 @@ u32 ZC_RecvDataFromMoudle(u8 *pu8Data, u16 u16DataLen)
             }
             break;
         }    
-        case ZC_CODE_ZOTA_FILE_BEGIN:
-            PCT_ModuleOtaFileBeginMsg(&g_struProtocolController, pu8Payload);
-            break;
-        case ZC_CODE_ZOTA_FILE_CHUNK:
-            PCT_ModuleOtaFileChunkMsg(&g_struProtocolController, pstruMsg, pu8Payload);
-            break;
-        case ZC_CODE_ZOTA_FILE_END:
-            PCT_ModuleOtaFileEndMsg(&g_struProtocolController, pu8Payload);
-            PCT_SendNotifyMsg(ZC_CODE_ZOTA_END);
-            break;
         case ZC_CODE_REST:
             ZC_ConfigReset();
             break;

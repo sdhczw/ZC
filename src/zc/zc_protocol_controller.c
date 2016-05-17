@@ -635,116 +635,8 @@ void PCT_HandleOtaBeginMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuf
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
     PCT_SendAckToCloud(pstruMsg->MsgId);    
     
-    PCT_SendNotifyMsg(ZC_CODE_ZOTA_BEGIN);
     return;
 }
-/*************************************************
-* Function: PCT_ModuleOtaFileBeginMsg
-* Description: 
-* Author: cxy 
-* Returns: 
-* Parameter: 
-* History:
-*************************************************/
-void PCT_ModuleOtaFileBeginMsg(PTC_ProtocolCon *pstruContoller, u8 *pu8Msg)
-{
-    ZC_OtaFileBeginReq *pstruOta;
-    ZC_Printf("Ota File Begin\n");
-    
-    pstruOta = (ZC_OtaFileBeginReq *)(pu8Msg);
-    
-    pstruContoller->struOtaInfo.u32RecvOffset = 0;
-    pstruContoller->struOtaInfo.u32TotalLen = ZC_HTONL(pstruOta->u32FileTotalLen);
-    pstruContoller->struOtaInfo.u8Crc[0] = pstruOta->u8TotalFileCrc[0];
-    pstruContoller->struOtaInfo.u8Crc[1] = pstruOta->u8TotalFileCrc[1];    
-    PCT_SendNotifyMsg(ZC_CODE_ACK);
-    return;
-}
-/*************************************************
-* Function: PCT_ModuleOtaFileChunkMsg
-* Description: 
-* Author: cxy 
-* Returns: 
-* Parameter: 
-* History:
-*************************************************/
-void PCT_ModuleOtaFileChunkMsg(PTC_ProtocolCon *pstruContoller, ZC_MessageHead *pstruMsg, u8 *pu8Msg)
-{
-    ZC_OtaFileChunkReq *pstruOta;
-    u32 u32FileLen;
-    u32 u32RetVal;
-    u32 u32RecvOffset;
-    u16 u16CalCrc;
-    u16 u16RecvCrc;
-
-    ZC_Printf("Ota File Chunk\n");
-    
-    pstruOta = (ZC_OtaFileChunkReq *)(pu8Msg);
-    u32FileLen = ZC_HTONS(pstruMsg->Payloadlen) - sizeof(ZC_OtaFileChunkReq);
-    u32RecvOffset = ZC_HTONL(pstruOta->u32Offset);
-    
-    /*check para*/
-    if ((u32RecvOffset != pstruContoller->struOtaInfo.u32RecvOffset)
-        || ((u32RecvOffset + u32FileLen) > pstruContoller->struOtaInfo.u32TotalLen)
-      || (u32FileLen > ZC_OTA_MAX_CHUNK_LEN))
-    {
-        ZC_Printf("recv error %d,%d,%d,%d,\n", u32RecvOffset, 
-            pstruContoller->struOtaInfo.u32RecvOffset,
-            pstruContoller->struOtaInfo.u32TotalLen,
-            u32FileLen);
-        PCT_SendNotifyMsg(ZC_CODE_ERR);
-        return;
-    }
-    //Check CRC
-    u16CalCrc = crc16_ccitt((u8*)(pstruOta), ZC_HTONS(pstruMsg->Payloadlen));
-    u16RecvCrc = (pstruMsg->TotalMsgCrc[0] << 8) + pstruMsg->TotalMsgCrc[1];
-
-    if (u16CalCrc != u16RecvCrc)
-    {
-        PCT_SendNotifyMsg(ZC_CODE_ERR);
-        return;
-    }
- 
-    u32RetVal = pstruContoller->pstruMoudleFun->pfunUpdate((u8*)(pstruOta + 1), u32RecvOffset, u32FileLen);
-    //u32RetVal = ZC_RET_OK;
-    ZC_Printf("offset = %d, len = %d\n", u32RecvOffset, u32FileLen);
-
-    if (ZC_RET_ERROR == u32RetVal)
-    {
-        ZC_Printf("OTA Fail\n");
-        PCT_SendNotifyMsg(ZC_CODE_ERR);
-        return;
-    }
-
-    /*update file offset*/
-    pstruContoller->struOtaInfo.u32RecvOffset = pstruContoller->struOtaInfo.u32RecvOffset + u32FileLen;
-    PCT_SendNotifyMsg(ZC_CODE_ACK);
-}
-/*************************************************
-* Function: PCT_ModuleOtaFileEndMsg
-* Description: 
-* Author: cxy 
-* Returns: 
-* Parameter: 
-* History:
-*************************************************/
-void PCT_ModuleOtaFileEndMsg(PTC_ProtocolCon *pstruContoller, u8 *pu8Msg)
-{
-    u32 u32RetVal;
-    ZC_Printf("Ota File End\n");
-    u32RetVal = pstruContoller->pstruMoudleFun->pfunUpdateFinish(pstruContoller->struOtaInfo.u32TotalLen);
-    if (ZC_RET_ERROR == u32RetVal)
-    {
-        PCT_SendNotifyMsg(ZC_CODE_ERR);
-    }
-    else
-    {
-        PCT_SendNotifyMsg(ZC_CODE_ACK);
-    }
-    
-
-}
-
 /*************************************************
 * Function: PCT_HandleOtaFileBeginMsg
 * Description: 
@@ -864,7 +756,6 @@ void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
     else
     {
         PCT_SendAckToCloud(pstruMsg->MsgId);
-        PCT_SendNotifyMsg(ZC_CODE_ZOTA_END);
         pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_REBOOT, 
             PCT_TIMER_INTERVAL_REBOOT, &pstruContoller->u8RebootTimer);
     }
