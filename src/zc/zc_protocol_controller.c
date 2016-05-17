@@ -858,12 +858,11 @@ void PCT_ResetNetWork(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer)
 
     pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
 
-    ZC_ConfigInitPara();
-    PCT_DisConnectCloud(pstruContoller);
-
+    ZC_ConfigResetAccess();
     PCT_SendEmptyMsg(pstruMsg->MsgId, ZC_SEC_ALG_AES);
     PCT_SendAckToCloud(pstruMsg->MsgId);
-    
+    pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_REBOOT,
+            PCT_TIMER_INTERVAL_REBOOT, &pstruContoller->u8RebootTimer);
     return;
 }
 

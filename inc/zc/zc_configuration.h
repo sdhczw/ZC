@@ -93,6 +93,7 @@ void ZC_GetStoreInfor(u8 u8Type, u8 **pu8Data);
 void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort);
 void ZC_ConfigUnBind(u32 u32UnBindFlag);
 void ZC_ConfigReset(void);
+void ZC_ConfigResetAccess(void);
 
 #ifdef __cplusplus
 }

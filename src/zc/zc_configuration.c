@@ -53,7 +53,7 @@ void ZC_ConfigInitPara()
         g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;
         g_struZcConfigDb.struSwitchInfo.u16ServerPort = ZC_CLOUD_PORT;
 
-        memcpy(g_struZcConfigDb.struCloudInfo.u8CloudAddr, "device.ablecloud.cn", ZC_CLOUD_ADDR_MAX_LEN);
+        memcpy(g_struZcConfigDb.struCloudInfo.u8CloudAddr, ZC_CLOUD_SERVER, ZC_CLOUD_ADDR_MAX_LEN);
         memcpy(g_struZcConfigDb.struCloudInfo.u8CloudKey, g_u8DefaultCloudKey, ZC_CLOUD_KEY_MAX_LEN);
         memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey, g_u8DefaultTokenKey, ZC_HS_SESSION_KEY_LEN);
 
@@ -245,6 +245,21 @@ void ZC_ConfigReset()
     g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8 *)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
     g_struProtocolController.pstruMoudleFun->pfunRest();
+}
+
+/*************************************************
+* Function: ZC_ConfigResetAccess
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+void ZC_ConfigResetAccess()
+{
+    g_struZcConfigDb.struSwitchInfo.u32ServerAddrConfig = 0;
+    g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
+    g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8 *)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
 
 /******************************* FILE END ***********************************/

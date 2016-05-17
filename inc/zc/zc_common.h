@@ -31,7 +31,7 @@ typedef volatile unsigned int               vu32;
 #define     ZC_MOUDLE_PORT                                   (7689)
 #define     ZC_MOUDLE_BROADCAST_PORT                         (8689)
 #define     ZC_SERVER_PORT                                   (9689)
-
+#define     ZC_CLOUD_SERVER                                  "device.ablecloud.cn"
 
 #define  ZC_IPADDR_MAX_LEN                  (16)
 
