@@ -88,20 +88,36 @@ u32 ZC_DealSessionOpt(ZC_MessageHead *pstruMsg, ZC_OptList *pstruOptList, u8 *pu
     u32CiperLen = MSG_BULID_BUFFER_MAXLEN;
     
     memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
-    AES_CBC_Encrypt(pu8SendBuff + sizeof(ZC_SecHead), u16RealLen + sizeof(ZC_MessageHead),
-        pu8Key, ZC_HS_SESSION_KEY_LEN,
-        u8Iv, ZC_HS_SESSION_KEY_LEN,
-        pu8SendBuff + sizeof(ZC_SecHead), &u32CiperLen);
-    
-    /*copy sec head*/
-    struSecHead.u16TotalMsg = ZC_HTONS((u16)u32CiperLen);
-    struSecHead.u8SecType = ZC_SEC_ALG_AES;
-    
-    memcpy(pu8SendBuff, &struSecHead, sizeof(ZC_SecHead));
-    
-    
-    /*msg len include sec head, msg head, payload len*/
-    g_u8ClientSendLen = u32CiperLen + sizeof(ZC_SecHead);
+    /* 2??ио?и╣ */
+    if (PCT_LOCAL_NONE_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+    {
+        u32CiperLen = sizeof(ZC_MessageHead) + (u16RealLen - u16OptLen);
+        /*copy sec head*/
+        struSecHead.u16TotalMsg = ZC_HTONS((u16)u32CiperLen);
+        struSecHead.u8SecType = ZC_SEC_ALG_NONE;
+
+        memcpy(pu8SendBuff, &struSecHead, sizeof(ZC_SecHead));
+        g_u8ClientSendLen = u32CiperLen + sizeof(ZC_SecHead);
+    }
+    else if (PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag
+        || PCT_LOCAL_DYNAMIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
+    {
+        /* ?ио?и╣ */
+        AES_CBC_Encrypt(pu8SendBuff + sizeof(ZC_SecHead), u16RealLen + sizeof(ZC_MessageHead),
+            pu8Key, ZC_HS_SESSION_KEY_LEN,
+            u8Iv, ZC_HS_SESSION_KEY_LEN,
+            pu8SendBuff + sizeof(ZC_SecHead), &u32CiperLen);
+        /*copy sec head*/
+        struSecHead.u16TotalMsg = ZC_HTONS((u16)u32CiperLen);
+        struSecHead.u8SecType = ZC_SEC_ALG_AES;
+        memcpy(pu8SendBuff, &struSecHead, sizeof(ZC_SecHead));
+        /*msg len include sec head, msg head, payload len*/
+        g_u8ClientSendLen = u32CiperLen + sizeof(ZC_SecHead);
+    }
+    else
+    {
+        return ZC_RET_ERROR;
+    }
     
     struParam.u8NeedPoll = 1;
  
