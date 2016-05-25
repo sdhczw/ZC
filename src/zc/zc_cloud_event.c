@@ -11,33 +11,6 @@
 #include <zc_protocol_controller.h>
 
 /*************************************************
-* Function: EVENT_BuildEmptyMsg
-* Description: 
-* Author: cxy 
-* Returns: 
-* Parameter: 
-* History:
-*************************************************/
-u32  EVENT_BuildEmptyMsg(u8 u8MsgId, u8 *pu8Msg, u16 *pu16Len)
-{
-    ZC_MessageHead *pstruMsg = NULL;
-    u16 crc = 0;
-    pstruMsg = (ZC_MessageHead *)pu8Msg;
-    pstruMsg->MsgCode = ZC_CODE_EMPTY;
-    pstruMsg->MsgId = u8MsgId;  
-    pstruMsg->OptNum = 0;  
-    pstruMsg->Payloadlen = 0;
-    pstruMsg->Version = ZC_VERSION;
-
-    crc = crc16_ccitt((u8*)(pstruMsg+1), 0);
-    pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
-    pstruMsg->TotalMsgCrc[1]=(crc&0xff);
-
-    *pu16Len = sizeof(ZC_MessageHead);
-    return ZC_RET_OK;
-}
-
-/*************************************************
 * Function: EVENT_BuildHeartMsg
 * Description: 
 * Author: cxy 

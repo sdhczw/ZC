@@ -106,11 +106,15 @@ void ZC_StoreRegisterInfo(u8 *pu8Data,u16 u16DataLen,u8 u8RegisterFlag)
 {
     ZC_RegisterReq *pstruRegisterMsg;
     u8 u8Mac[ZC_SERVER_MAC_LEN];
+    PTC_ProtocolCon *pstruCon; pstruCon = &g_struProtocolController;
     u16 u16DeviceIdLen = u16DataLen - ZC_EQVERSION_LEN - ZC_MODULE_KEY_LEN - ZC_DOMAIN_LEN;
     pstruRegisterMsg = (ZC_RegisterReq *)pu8Data;
 
     memset(g_struRegisterInfo.u8DeviceId,0,ZC_HS_DEVICE_ID_LEN+ZC_DOMAIN_LEN);
     memcpy(g_struRegisterInfo.u8PrivateKey, pstruRegisterMsg->u8ModuleKey, ZC_MODULE_KEY_LEN);
+    memcpy(pstruCon->u8SessionKey, pstruRegisterMsg->u8ModuleKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(pstruCon->IvSend, pstruRegisterMsg->u8ModuleKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(pstruCon->IvRecv, pstruRegisterMsg->u8ModuleKey, ZC_HS_SESSION_KEY_LEN);
     if((u8RegisterFlag)||(0 == u16DeviceIdLen))
 	{
         memset(g_struRegisterInfo.u8DeviceId, '0', ZC_HS_OLDDEVICE_ID_LEN);
