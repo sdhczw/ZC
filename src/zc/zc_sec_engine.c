@@ -419,12 +419,3 @@ u32 SEC_Decrypt(ZC_SecHead *pstruSecHead, u8 *pu8CiperBuf, u8 *pu8PlainBuf, u16 
     return u32RetVal;
 }
 /******************************* FILE END ***********************************/
-        u32RetVal = SEC_DecryptTextByRsa(pu8CiperBuf, pu8PlainBuf, ZC_HTONS(pstruSecHead->u16TotalMsg), pu16PlainLen);
-            break;
-        case ZC_SEC_ALG_AES:
-            u32RetVal = SEC_AesDecrypt(pu8CiperBuf, pu8PlainBuf, ZC_HTONS(pstruSecHead->u16TotalMsg), pu16PlainLen);
-            break;
-    }
-    return u32RetVal;
-}
-/******************************* FILE END ***********************************/
