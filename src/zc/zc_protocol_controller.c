@@ -562,6 +562,11 @@ void PCT_HandleUnbindMsg(PTC_ProtocolCon *pstruContoller)
     pstruBuffer->u32Len = 0;
     pstruBuffer->u8Status = MSG_BUFFER_IDLE;
 
+    if (PCT_TIMER_INVAILD != pstruContoller->u8HeartTimer)
+    {
+        TIMER_StopTimer(pstruContoller->u8HeartTimer);
+    }
+
     pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDHEART, 
         PCT_TIMER_INTERVAL_HEART, &pstruContoller->u8HeartTimer);
 }
