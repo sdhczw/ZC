@@ -210,7 +210,6 @@ u32 PCT_CheckCrc(u8 *pu8Crc, u8 *pu8Data, u16 u16Len);
 void PCT_SendNotifyMsg(u8 u8NotifyCode);
 void PCT_SendHeartMsg(void);
 void PCT_Init(PTC_ModuleAdapter *pstruAdapter);
-void PCT_SendEmptyMsg(u8 u8MsgId, u8 u8SecType);
 void PCT_SendErrorMsg(u8 u8MsgId, u8 *pu8Error, u16 u16ErrorLen);
 void PCT_SendCloudAccessMsg1(PTC_ProtocolCon *pstruContoller);
 void PCT_SendCloudAccessMsg3(PTC_ProtocolCon *pstruContoller);
