@@ -22,7 +22,14 @@
 
 #define    ZC_MAGIC_FLAG (0x04083207)
 
-
+typedef enum
+{
+    ZC_AUTH_NONE  =  0,                    /* 未授权                        */
+    ZC_AUTH_OK    =  1,                    /* 已授权，授权成功              */
+    ZC_AUTH_ERROR =  2,                    /* 已授权，授权失败              */
+    ZC_AUTH_LICENSE_NO_USED = 3,         /* 已授权，该license未被使用     */
+    ZC_AUTHING    =  4                    /* 正在被授权                    */
+}ZC_EnumAuthStatus;
 
 typedef struct 
 {
@@ -76,9 +83,32 @@ typedef struct
     ZC_DeviceInfo   struDeviceInfo;//8byte
 }ZC_ConfigDB;
 
+typedef struct
+{
+    u32 u32MagicFlag;
+    u32 u32Crc;
+    u8  u8License[ZC_LICENSE_LEN];
+    u8  u8Status;
+    u8  u8pad[2];
+}ZC_LicenseInfo;
+
+typedef struct
+{
+    int fd;
+    u8 u8TokenKey[ZC_HS_SESSION_KEY_LEN];
+    u8 IvSend[ZC_HS_SESSION_KEY_LEN];
+    u8 IvRecv[ZC_HS_SESSION_KEY_LEN];
+}ZC_LanConfigInfo;
+
+typedef struct
+{
+    u8 u8Status;               /* 授权状态，具体参考ZC_EnumAuthStatus */
+    u8 u8pad[3];
+}ZC_LieceseAuthStatus;
+
 extern ZC_ConfigDB g_struZcConfigDb;
 extern ZC_RegisterInfo g_struRegisterInfo;
-
+extern ZC_LicenseInfo g_struLiceInfo;
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,6 +124,11 @@ void ZC_StoreAccessInfo(u8 *pu8ServerIp, u8 *pu8ServerPort);
 void ZC_ConfigUnBind(u32 u32UnBindFlag);
 void ZC_ConfigReset(void);
 void ZC_ConfigResetAccess(void);
+s32 ZC_ConfigLicense(u8 *pu8License, u16 u16Len);
+u8 ZC_GetAuthStatus(void);
+void ZC_LanSetLicense(u8 *pu8License, u16 u16Len);
+void ZC_LanCancelLicense(void);
+
 
 #ifdef __cplusplus
 }

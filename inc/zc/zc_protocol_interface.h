@@ -39,6 +39,8 @@
 #define ZC_SERVER_PORT_MAX_LEN               (2)
 
 #define ZC_SERVER_MAC_LEN                    (12)
+
+#define ZC_LICENSE_LEN                       (29)
 /****************************************************************************************
 *message format: 
 *|ZC_SecHead||ZC_MessageHead||ZC_MessageOptHead||ZC_MessageOption|.......|ZC_MessagePayload|
@@ -132,13 +134,24 @@ typedef enum
 	
     ZC_CODE_OTA_CONFIRM = 35,
     ZC_CODE_UNBIND = 36,
+    ZC_CODE_DEVICE_EXPAND = 38,
 
+    ZC_CODE_LAN_SET_LICENSE = 51,       /* LAN */
+    ZC_CODE_CLOUD_SET_LICENSE = 52,       /* Cloud */
+    
     ZC_CODE_KLV_RSP = 60,
     ZC_CODE_JSON_RSP = 61,
     ZC_CODE_EXT = 63, 
     ZC_CODE_EVENT_BASE = 64,
     ZC_CODE_REPORT_BASE = 200
 }ZC_MsgCode;
+
+typedef enum
+{
+    ZC_PARA_ERROR              = 1,
+    ZC_WRITE_LICENSE_ERROR    = 2,
+    ZC_MALLOC_ERROR            = 3
+}ZC_ErrorCode;
 
 /*ZCloud Message Ext code*/
 typedef enum 
@@ -202,6 +215,7 @@ typedef struct
 {
     u8 TokenKey[ZC_HS_SESSION_KEY_LEN];
 }ZC_TokenSetReq;
+
 
 typedef struct
 {

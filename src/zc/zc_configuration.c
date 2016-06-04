@@ -12,6 +12,11 @@
 
 ZC_ConfigDB g_struZcConfigDb;
 ZC_RegisterInfo g_struRegisterInfo;
+ZC_LicenseInfo g_struLiceInfo;
+ZC_LanConfigInfo g_struLanInfo;
+
+extern u8* g_pu8ClientAddr;
+
 u8 g_u8DefaultCloudKey[ZC_CLOUD_KEY_MAX_LEN] = 
 {
     0xb8, 0xd9, 0x35, 0xe4,
@@ -45,7 +50,7 @@ void ZC_ConfigInitPara()
     u32 u32Crc;
     g_struProtocolController.pstruMoudleFun->pfunReadFlash((u8 *)&g_struZcConfigDb,sizeof(g_struZcConfigDb));
     u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);
-    if(u32Crc!=g_struZcConfigDb.u32Crc)
+    if(u32Crc != g_struZcConfigDb.u32Crc)
     {
         g_struZcConfigDb.struSwitchInfo.u32SecSwitch = 1;
         g_struZcConfigDb.struSwitchInfo.u32TraceSwitch = 0;
@@ -61,6 +66,28 @@ void ZC_ConfigInitPara()
         g_struZcConfigDb.struDeviceInfo.u32UnBindFlag = 0xFFFFFFFF;
         g_struZcConfigDb.struDeviceInfo.u32UnBcFlag = 0xFFFFFFFF;
         ZC_Printf("no para, use default\n");
+    }
+
+    g_struProtocolController.pstruMoudleFun->pfunReadLicense((u8 *)&g_struLiceInfo,sizeof(u32));
+
+    if (ZC_MAGIC_FLAG != g_struLiceInfo.u32MagicFlag)
+    {
+        ZC_Printf("No license\n");
+        g_struLiceInfo.u8Status = ZC_AUTH_NONE;
+        return;
+    }
+    
+    g_struProtocolController.pstruMoudleFun->pfunReadLicense((u8 *)&g_struLiceInfo,sizeof(g_struLiceInfo));
+    u32Crc = crc16_ccitt(((u8 *)&g_struLiceInfo) + 8, ZC_LICENSE_LEN);
+    if(u32Crc != g_struLiceInfo.u32Crc)
+    {   
+        ZC_Printf("ZC_ConfigInitPara:Crc is not same\n");
+        g_struLiceInfo.u8Status = ZC_AUTH_ERROR;
+    }
+    else
+    {
+        ZC_Printf("License is ok\n");
+        g_struLiceInfo.u8Status = ZC_AUTH_OK;
     }
 }
 
@@ -126,8 +153,13 @@ void ZC_StoreRegisterInfo(u8 *pu8Data,u16 u16DataLen,u8 u8RegisterFlag)
 
     if (PCT_LOCAL_STATIC_TOKEN == g_struProtocolController.u32LocalTokenFlag)
     {
-        PCT_SetDefaultToken();
+        PCT_SetAesKey(g_struZcConfigDb.struCloudInfo.u8TokenKey);
     }
+    PCT_SetAesKey(g_struLanInfo.u8TokenKey);
+
+    memcpy(g_struLanInfo.IvRecv, g_struLanInfo.u8TokenKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(g_struLanInfo.IvSend, g_struLanInfo.u8TokenKey, ZC_HS_SESSION_KEY_LEN);
+    
 }
 
 
@@ -261,6 +293,236 @@ void ZC_ConfigResetAccess()
     g_struZcConfigDb.u32Crc = crc16_ccitt(((u8 *)&g_struZcConfigDb) + 4, sizeof(g_struZcConfigDb) - 4);    
     g_struProtocolController.pstruMoudleFun->pfunWriteFlash((u8 *)&g_struZcConfigDb, sizeof(ZC_ConfigDB));
 }
+/*************************************************
+* Function: ZC_SendMsgToClient
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+u32 ZC_SendMsgToClient(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
+{
+    u32 u32RetVal;
+    u16 u16Len;
+    u16 u16PaddingLen;
+    ZC_SendParam struParam;
+    u8 *pu8Buf = NULL;
+    u32 u32OutLen = 0;
+    u8 *u8SessionKey = g_struLanInfo.u8TokenKey;
+    u8 IvSend[ZC_HS_SESSION_KEY_LEN];
 
+    memcpy(IvSend, u8SessionKey, ZC_HS_SESSION_KEY_LEN);
+    u32RetVal = SEC_PaddingCheck(pstruSecHead->u8SecType, ZC_HTONS(pstruSecHead->u16TotalMsg), &u16PaddingLen);
+    
+    if (ZC_RET_ERROR == u32RetVal)
+    {
+        return ZC_RET_ERROR;
+    }
+
+    u16Len = ZC_HTONS(pstruSecHead->u16TotalMsg) + sizeof(ZC_SecHead) + u16PaddingLen;    
+    
+    if (u16Len > MSG_BUFFER_MAXLEN)
+    {
+        return ZC_RET_ERROR;
+    }
+
+    pu8Buf = (u8 *)ZC_malloc(MSG_BUFFER_MAXLEN);
+
+    if (NULL == pu8Buf)
+    {
+        return ZC_MALLOC_ERROR;
+    }
+
+    u32OutLen = u16Len;
+    u16Len = ZC_HTONS(pstruSecHead->u16TotalMsg);
+
+    AES_CBC_Encrypt(pu8PlainData, u16Len, 
+        u8SessionKey, ZC_HS_SESSION_KEY_LEN, 
+        IvSend, 16, 
+        pu8Buf + sizeof(ZC_SecHead), &u32OutLen);
+    
+    pstruSecHead->u16TotalMsg = ZC_HTONS((u16)u32OutLen);
+
+    memcpy(pu8Buf, (u8*)pstruSecHead, sizeof(ZC_SecHead));
+    
+    struParam.u8NeedPoll = 0;
+    struParam.pu8AddrPara = g_pu8ClientAddr;
+    g_struProtocolController.pstruMoudleFun->pfunSendUdpData(g_struLanInfo.fd, pu8Buf, u32OutLen + sizeof(ZC_SecHead), &struParam);
+
+    ZC_free(pu8Buf);
+
+    return ZC_RET_OK;
+}
+/*************************************************
+* Function: ZC_SendMsgToClient
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+void ZC_SendLicenseResp(u8 u8Status)
+{
+    u16 u16Len;
+    ZC_SecHead struSechead;
+    ZC_LieceseAuthStatus struStatus;
+    memset(&struStatus, 0, sizeof(struStatus));
+    u8 *pu8MsgBuf = (u8 *)ZC_malloc(100);
+
+    if(NULL == pu8MsgBuf)
+    {
+        return;
+    }
+
+    struStatus.u8Status = u8Status;
+    
+    EVENT_BuildMsg(ZC_CODE_LAN_SET_LICENSE, 0, pu8MsgBuf, &u16Len, (u8 *)&struStatus, sizeof(struStatus));
+    struSechead.u8SecType = ZC_SEC_ALG_AES;
+    struSechead.u16TotalMsg = ZC_HTONS(u16Len);
+    (void)ZC_SendMsgToClient(&struSechead, pu8MsgBuf);
+    ZC_free(pu8MsgBuf);
+}
+
+/*************************************************
+* Function: ZC_GetAuthStatus
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+u8 ZC_GetAuthStatus(void)
+{
+    return g_struLiceInfo.u8Status;
+}
+/*************************************************
+* Function: ZC_ConfigResetAccess
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+s32 ZC_ConfigLicense(u8 *pu8License, u16 u16Len)
+{
+    if (NULL == pu8License || ZC_LICENSE_LEN != u16Len)
+    {
+        return ZC_PARA_ERROR;
+    }
+
+    ZC_Printf("ZC_ConfigLicense\n");
+    ZC_LicenseInfo struInfo;
+    
+    memset(&struInfo, 0 ,sizeof(struInfo));
+    memset(&g_struLiceInfo, 0 ,sizeof(g_struLiceInfo));
+    
+    memcpy(g_struLiceInfo.u8License, pu8License, u16Len);
+    g_struLiceInfo.u32Crc = crc16_ccitt(pu8License, u16Len);
+
+    g_struLiceInfo.u32MagicFlag = ZC_MAGIC_FLAG;
+    /* 1,write */
+    g_struProtocolController.pstruMoudleFun->pfunWriteLicense((u8 *)&g_struLiceInfo, sizeof(ZC_LicenseInfo));
+    /* 2,read back */
+    g_struProtocolController.pstruMoudleFun->pfunReadLicense((u8 *)&struInfo, sizeof(ZC_LicenseInfo));
+    /* 3,compare */
+    if (0 == memcmp(&g_struLiceInfo, &struInfo, sizeof(ZC_LicenseInfo)))
+    {
+        g_struLiceInfo.u8Status = ZC_AUTH_OK;
+        return ZC_RET_OK;
+    }
+    else
+    {
+        return ZC_WRITE_LICENSE_ERROR;
+    }
+}
+
+/*************************************************
+* Function: ZC_LanSetLicense
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+void ZC_LanSetLicense(u8 *pu8License, u16 u16Len)
+{
+    if (NULL == pu8License || ZC_LICENSE_LEN != u16Len)
+    {
+        return;
+    }
+    s32 ret;
+    u8 u8Status;
+
+    u32 u32i;
+
+    for (u32i = 0; u32i < (u32)u16Len; u32i++)
+    {
+        ZC_Printf("%02x\t", pu8License[u32i]);
+    }
+    ZC_Printf("\n");
+
+    for (u32i = 0; u32i < (u32)u16Len; u32i++)
+    {
+        ZC_Printf("%02x\t", g_struLiceInfo.u8License[u32i]);
+    }
+    ZC_Printf("\n");
+    
+    u8Status = ZC_GetAuthStatus();
+
+    if (ZC_AUTH_OK == u8Status)
+    {
+        if (0 == memcmp((const char *)g_struLiceInfo.u8License, (const char *)pu8License, ZC_LICENSE_LEN))
+        {
+            ZC_Printf("License same\n");
+            u8Status = ZC_AUTH_OK;
+        }
+        else 
+        {
+            ZC_Printf("License no used\n");
+            u8Status = ZC_AUTH_LICENSE_NO_USED;
+        }
+        goto END;
+    }
+    else if (ZC_AUTH_ERROR == u8Status)
+    {
+        ZC_Printf("status error\n");
+        goto END;
+    }
+
+    ret = ZC_ConfigLicense(pu8License, u16Len);
+
+    if (ZC_RET_OK == ret)
+    {
+        ZC_Printf("ZC_ConfigLicense ok\n");
+        u8Status = ZC_AUTH_OK;
+    }
+    else
+    {
+        ZC_Printf("ZC_ConfigLicense error\n");
+        u8Status = ZC_AUTH_ERROR;
+    }
+END:
+
+    ZC_SendLicenseResp(u8Status);
+}
+/*************************************************
+* Function: ZC_LanCancelLicense
+* Description:
+* Author: cxy
+* Returns:
+* Parameter:
+* History:
+*************************************************/
+void ZC_LanCancelLicense(void)
+{
+    ZC_Printf("ZC_LanCancelLicense\n");
+    ZC_LicenseInfo struInfo;
+
+    memset(&struInfo, 0, sizeof(ZC_LicenseInfo));
+
+    g_struProtocolController.pstruMoudleFun->pfunWriteLicense((u8 *)&struInfo, sizeof(ZC_LicenseInfo));
+    
+}
 /******************************* FILE END ***********************************/
 

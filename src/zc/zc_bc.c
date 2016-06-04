@@ -9,10 +9,14 @@
 */
 #include <zc_bc.h>
 #include <zc_protocol_controller.h>
+
 int g_Bcfd = 0;
 u8* g_pu8RemoteAddr = NULL;
+u8* g_pu8ClientAddr = NULL;
+
 unsigned int g_u32GloablIp;
 extern u32 g_u32BcSleepCount;
+extern ZC_LanConfigInfo g_struLanInfo;
 /*************************************************
 * Function: ZC_SendBc
 * Description: 
@@ -117,6 +121,63 @@ void ZC_SendClientQueryReq(u8 *pu8Msg, u16 u16RecvLen)
     struParam.pu8AddrPara = g_pu8RemoteAddr;
     g_struProtocolController.pstruMoudleFun->pfunSendUdpData(g_Bcfd, g_u8MsgBuildBuffer, u16Len, &struParam);  
 }
+
+/*************************************************
+* Function: ZC_HandleLanMsg
+* Description: 
+* Author: zw 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void ZC_HandleLanMsg(u8* pu8RemoteAddr,u8 *pu8Data, u32 u32DataLen)
+{
+    u8 *pu8Key;
+    u8 u8Iv[ZC_HS_SESSION_KEY_LEN];
+    u32 u32CiperLen;
+    ZC_MessageHead *pstruMsgHead;
+    ZC_SecHead *pstruSecHead;
+    pstruSecHead = (ZC_SecHead *)pu8Data;
+
+    if (ZC_HTONS(pstruSecHead->u16TotalMsg) >= 1052)
+    {
+        return;
+    }
+
+    g_pu8ClientAddr = pu8RemoteAddr;
+
+    pu8Key = g_struLanInfo.u8TokenKey;
+
+    memcpy(u8Iv, pu8Key, ZC_HS_SESSION_KEY_LEN);
+
+    AES_CBC_Decrypt(pu8Data + sizeof(ZC_SecHead), ZC_HTONS(pstruSecHead->u16TotalMsg), 
+        pu8Key, ZC_HS_SESSION_KEY_LEN, 
+        u8Iv, ZC_HS_SESSION_KEY_LEN, 
+        g_u8MsgBuildBuffer, &u32CiperLen);
+
+    pstruMsgHead = (ZC_MessageHead *)g_u8MsgBuildBuffer;
+    if (ZC_HTONS(pstruMsgHead->Payloadlen) >= 1044)
+    {
+        ZC_Printf("Payloadlen > 1044\n");
+        return;
+    }
+    if(ZC_RET_ERROR == PCT_CheckCrc(pstruMsgHead->TotalMsgCrc,(u8 *)(pstruMsgHead + 1),ZC_HTONS(pstruMsgHead->Payloadlen)))
+    {
+        ZC_Printf("Crc error\n");
+        return; 
+    }
+
+    ZC_Printf("Msgcode is %d\n", pstruMsgHead->MsgCode);
+    switch (pstruMsgHead->MsgCode)
+    {
+        case ZC_CODE_LAN_SET_LICENSE:
+            ZC_LanSetLicense((u8 *)(pstruMsgHead + 1), ZC_HTONS(pstruMsgHead->Payloadlen));
+            break;
+        default:
+            break;
+    }
+}
+
 /******************************* FILE END ***********************************/
 
 
