@@ -271,12 +271,13 @@ void MSG_RecvDataFromCloud(u8 *pu8Data, u32 u32DataLen)
             u32RetVal = SEC_Decrypt((ZC_SecHead*)g_struRecvBuffer.u8MsgBuffer, 
                 g_struRecvBuffer.u8MsgBuffer + sizeof(ZC_SecHead), g_u8MsgBuildBuffer, &u16PlainLen);
 
-            /*copy data*/
-            memcpy(g_struRecvBuffer.u8MsgBuffer, g_u8MsgBuildBuffer, u16PlainLen);
-
-            g_struRecvBuffer.u32Len = u16PlainLen;
             if (ZC_RET_OK == u32RetVal)
             {
+                /*copy data*/
+                memcpy(g_struRecvBuffer.u8MsgBuffer, g_u8MsgBuildBuffer, u16PlainLen);
+
+                g_struRecvBuffer.u32Len = u16PlainLen;
+
                 u32RetVal = MSG_PushMsg(&g_struRecvQueue, (u8*)&g_struRecvBuffer);
             }
         }
