@@ -367,6 +367,9 @@ void PCT_ReconnectCloud(PTC_ProtocolCon *pstruContoller, u32 u32ReConnectTimer)
 
     MSG_Init();
     g_struProtocolController.u8keyRecv = PCT_KEY_UNRECVED;
+    memcpy(g_struProtocolController.u8SessionKey, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(g_struProtocolController.IvSend, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(g_struProtocolController.IvRecv, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
 
     for (u32Index = 0; u32Index < ZC_TIMER_MAX_NUM; u32Index++)
     {
@@ -1069,6 +1072,9 @@ void PCT_Sleep()
     MSG_Init();
 
     g_struProtocolController.u8keyRecv = PCT_KEY_UNRECVED;
+    memcpy(g_struProtocolController.u8SessionKey, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(g_struProtocolController.IvSend, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
+    memcpy(g_struProtocolController.IvRecv, g_struRegisterInfo.u8PrivateKey, ZC_HS_SESSION_KEY_LEN);
     for (u32Index = 0; u32Index < ZC_TIMER_MAX_NUM; u32Index++)
     {
         if (g_struTimer[u32Index].u8Status == ZC_TIMER_STATUS_USED)
