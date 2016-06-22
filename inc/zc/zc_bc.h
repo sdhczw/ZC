@@ -23,6 +23,7 @@ extern "C" {
 #endif
 void ZC_SendBc(void);
 void ZC_SendClientQueryReq(u8 *pu8Msg, u16 u16RecvLen);
+void ZC_HandleLanMsg(u8* pu8RemoteAddr,u8 *pu8Data, u32 u32DataLen);
 
     
 #ifdef __cplusplus

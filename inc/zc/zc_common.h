@@ -27,6 +27,7 @@ typedef volatile unsigned char              vu8;
 typedef volatile unsigned short             vu16;                               
 typedef volatile unsigned int               vu32;      
 
+#define     ZC_AUTH_PORT                                     (6689)
 #define     ZC_CLOUD_PORT                                    (9100)
 #define     ZC_MOUDLE_PORT                                   (7689)
 #define     ZC_MOUDLE_BROADCAST_PORT                         (8689)

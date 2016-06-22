@@ -190,5 +190,4 @@ void EVENT_BuildOption(ZC_OptList *pstruOptList, u8 *pu8OptNum, u8 *pu8Buffer, u
     *pu8OptNum = u8OptNum;
     return;
 }
-
 /******************************* FILE END ***********************************/

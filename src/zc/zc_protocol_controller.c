@@ -29,7 +29,7 @@ extern ZC_Timer g_struTimer[ZC_TIMER_MAX_NUM];
 *************************************************/
 void PCT_SetLocalLevel(PCT_LOCAL_LEVEL Etoken)
 {   
-    /* 2?¨ºy?¨¬2¨¦ */
+    /* set level */
     if (PCT_LOCAL_NONE_TOKEN != Etoken
         && PCT_LOCAL_STATIC_TOKEN != Etoken
          && PCT_LOCAL_DYNAMIC_TOKEN != Etoken)
@@ -303,6 +303,7 @@ void PCT_DisConnectCloud(PTC_ProtocolCon *pstruContoller)
 void PCT_ConnectCloud(PTC_ProtocolCon *pstruContoller)
 {
     u32 u32Ret = ZC_RET_OK;
+    u8 u8Status;
     
     if (PCT_TIMER_INVAILD != pstruContoller->u8ReconnectTimer)
     {
@@ -312,6 +313,32 @@ void PCT_ConnectCloud(PTC_ProtocolCon *pstruContoller)
     /*Connect*/
     u32Ret = pstruContoller->pstruMoudleFun->pfunConnectToCloud(&pstruContoller->struCloudConnection);
     if (ZC_RET_OK != u32Ret)
+    {
+        return;
+    }
+
+    /* change rand msg info to license info */
+    u8Status = ZC_GetAuthStatus();
+
+    if (ZC_AUTH_NONE == u8Status)
+    {
+        memcpy(g_struProtocolController.RandMsg, ZC_AUTH_LICENSE_NONE, strlen(ZC_AUTH_LICENSE_NONE));
+    }
+    else if (ZC_AUTH_OK == u8Status)
+    {
+        memcpy(g_struProtocolController.RandMsg, ZC_AUTH_LICENSE_OK, strlen(ZC_AUTH_LICENSE_OK));
+        memcpy(g_struProtocolController.RandMsg + strlen(ZC_AUTH_LICENSE_OK),
+               g_struLiceInfo.u8License,
+               ZC_LICENSE_LEN);
+    }
+    else if (ZC_AUTH_ERROR == u8Status)
+    {
+        memcpy(g_struProtocolController.RandMsg, ZC_AUTH_LICENSE_ERROR, strlen(ZC_AUTH_LICENSE_ERROR));
+        memcpy(g_struProtocolController.RandMsg + strlen(ZC_AUTH_LICENSE_ERROR),
+               g_struLiceInfo.u8License,
+               ZC_LICENSE_LEN);
+    }
+    else
     {
         return;
     }
@@ -824,6 +851,38 @@ void PCT_SetTokenKey(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer)
 }
 
 /*************************************************
+* Function: PCT_SetLicense
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_SetLicense(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer)
+{
+    s32 ret = 0;
+    ZC_MessageHead *pstruMsg;
+    u8 *pu8License;
+
+    pstruMsg = (ZC_MessageHead*)pstruBuffer->u8MsgBuffer;
+    pu8License = (u8 *)(pstruMsg + 1);
+
+    ret = ZC_ConfigLicense(pu8License, ZC_HTONS(pstruMsg->Payloadlen));
+    if (ZC_RET_OK == ret)
+    {
+        PCT_SendAckToCloud(pstruMsg->MsgId);
+    }
+    else 
+    {
+        PCT_SendErrorMsg(pstruMsg->MsgId, NULL, 0);        
+    }
+
+    pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_REBOOT, 
+            PCT_TIMER_INTERVAL_REBOOT, &pstruContoller->u8RebootTimer);
+    return;
+}
+
+/*************************************************
 * Function: PCT_ResetNetWork
 * Description: 
 * Author: cxy 
@@ -919,6 +978,9 @@ void PCT_HandleEvent(PTC_ProtocolCon *pstruContoller)
             PCT_ResetNetWork(pstruContoller, pstruBuffer);
             break;
         case ZC_CODE_UNBIND:
+            break;
+        case ZC_CODE_CLOUD_SET_LICENSE:
+            PCT_SetLicense(pstruContoller, pstruBuffer);
             break;
         default:
             PCT_HandleMoudleMsg(pstruContoller, pstruBuffer);
@@ -1090,12 +1152,16 @@ u32 PCT_SendMsgToCloud(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
 * Parameter: 
 * History:
 *************************************************/
-void PCT_SetDefaultToken(void)
+void PCT_SetAesKey(u8 *pu8Key)
 {   
+    if (NULL == pu8Key)
+    {
+        return;
+    }
     u8 *pu8DeviceId;
     u8 u8DeviceIdLen;
     
-    memset(g_struZcConfigDb.struCloudInfo.u8TokenKey, '0' , ZC_HS_SESSION_KEY_LEN);
+    memset(pu8Key, '0' , ZC_HS_SESSION_KEY_LEN);
 
     ZC_GetStoreInfor(ZC_GET_TYPE_DEVICEID, &pu8DeviceId);
 
@@ -1103,19 +1169,19 @@ void PCT_SetDefaultToken(void)
 
     if (u8DeviceIdLen < PCT_DEVICE_MIN_LEN || u8DeviceIdLen > PCT_DEVICE_MAX_LEN)
     {
-        ZC_Printf("PCT_SetDefaultToken error: u8DeviceIdLen is %d\n", u8DeviceIdLen);
+        ZC_Printf("PCT_SetAesKey error: u8DeviceIdLen is %d\n", u8DeviceIdLen);
         return;
     }
-    /* 11?¨¬AES Key */
+    /* AES Key */
     if (u8DeviceIdLen <= ZC_HS_SESSION_KEY_LEN)
     {
-        memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey + ZC_HS_SESSION_KEY_LEN - u8DeviceIdLen,
+        memcpy(pu8Key + ZC_HS_SESSION_KEY_LEN - u8DeviceIdLen,
                 pu8DeviceId,
                 u8DeviceIdLen);
     }
     else if (u8DeviceIdLen > ZC_HS_SESSION_KEY_LEN)
     {
-        memcpy(g_struZcConfigDb.struCloudInfo.u8TokenKey,
+        memcpy(pu8Key,
                 pu8DeviceId,
                 ZC_HS_SESSION_KEY_LEN);
     }

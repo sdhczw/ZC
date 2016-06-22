@@ -66,6 +66,14 @@
 #define    PCT_DEVICE_MIN_LEN      (8)
 #define    PCT_DEVICE_MAX_LEN      (64)
 
+/* no license */
+#define ZC_AUTH_LICENSE_NONE            "NIL"
+/* license ok */
+#define ZC_AUTH_LICENSE_OK              "NOM"
+/* license error */
+#define ZC_AUTH_LICENSE_ERROR           "ERR"
+
+
 typedef enum
 {
     PCT_LOCAL_NONE_TOKEN = 0,
@@ -131,7 +139,9 @@ typedef struct
     pFunSetTimer                pfunSetTimer;
     pFunStopTimer               pfunStopTimer;
     pFunWriteFlashData          pfunWriteFlash;
+    pFunWriteFlashData          pfunWriteLicense;
     pFunReadFlashData           pfunReadFlash;
+    pFunReadFlashData           pfunReadLicense;
     pFunGetMac                  pfunGetMac;
 
     pFunPrintf                  pfunPrintf;
@@ -223,7 +233,8 @@ void PCT_HandleOtaFileEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruB
 void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_SendUnbindMsg(void);
-void PCT_SetDefaultToken(void);
+void PCT_SetAesKey(u8 *pu8Key);
+
 
 #ifdef __cplusplus
 }
