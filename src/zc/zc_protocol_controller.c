@@ -91,23 +91,39 @@ void PCT_SendNotifyMsg(u8 u8NotifyCode)
 *************************************************/
 void PCT_SendHeartMsg()
 {
-    ZC_MessageHead struHeart;
+    //ZC_MessageHead struHeart;
     ZC_SecHead struSecHead;
     u16 u16Len = 0;
-    
-    EVENT_BuildHeartMsg((u8*)&struHeart, &u16Len);
 
-    /*build sec head*/
-    struSecHead.u8SecType = ZC_SEC_ALG_AES;
-    struSecHead.u16TotalMsg = ZC_HTONS(u16Len);
+    EVENT_BuildHeartMsg((u8*)&struSecHead, &u16Len);
 
-    (void)PCT_SendMsgToCloud(&struSecHead, (u8*)&struHeart);
+    (void)PCT_SendMsgToCloud(&struSecHead, NULL);
 
     g_struProtocolController.pstruMoudleFun->pfunSetTimer(PCT_TIMER_SENDHEART, 
         PCT_TIMER_INTERVAL_HEART, &g_struProtocolController.u8HeartTimer);
+
+    g_struProtocolController.pstruMoudleFun->pfunSetTimer(PCT_TIMER_CHECK_CLOUD_ACK, 
+        PCT_TIMER_INTERVAL_CLOUD_ACK, &g_struProtocolController.u8CloudAckTimer);
     
 }
-
+/*************************************************
+* Function: PCT_DelCheckCloudAckTimer
+* Description: 
+* Author: cxy 
+* Returns: 
+* Parameter: 
+* History:
+*************************************************/
+void PCT_DelCheckCloudAckTimer(void)
+{
+    if (PCT_TIMER_INVAILD != g_struProtocolController.u8CloudAckTimer)
+    {
+        TIMER_StopTimer(g_struProtocolController.u8CloudAckTimer);
+        g_struProtocolController.u8CloudAckTimer = PCT_TIMER_INVAILD;
+        g_struProtocolController.u32CloudNotAckNum = 0;
+    }
+    return;
+}
 /*************************************************
 * Function: PCT_Init
 * Description: 
@@ -143,12 +159,14 @@ void PCT_Init(PTC_ModuleAdapter *pstruAdapter)
     g_struProtocolController.u8ReconnectTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8HeartTimer = PCT_TIMER_INVAILD;
+    g_struProtocolController.u8CloudAckTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8RegisterTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8RebootTimer = PCT_TIMER_INVAILD;
 
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
 
     g_struProtocolController.u32LocalTokenFlag = PCT_LOCAL_DYNAMIC_TOKEN;
+    g_struProtocolController.u32CloudNotAckNum = 0;
 
     ZC_ClientInit();
 }
@@ -384,7 +402,10 @@ void PCT_ReconnectCloud(PTC_ProtocolCon *pstruContoller, u32 u32ReConnectTimer)
     g_struProtocolController.u8ReconnectTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8HeartTimer = PCT_TIMER_INVAILD;
+    g_struProtocolController.u8CloudAckTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
+
+    g_struProtocolController.u32CloudNotAckNum = 0;
 
     pstruContoller->pstruMoudleFun->pfunSetTimer(PCT_TIMER_RECONNECT, 
         u32ReConnectTimer, &pstruContoller->u8ReconnectTimer);
@@ -1087,8 +1108,10 @@ void PCT_Sleep()
     g_struProtocolController.u8ReconnectTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8SendMoudleTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8HeartTimer = PCT_TIMER_INVAILD;
+    g_struProtocolController.u8CloudAckTimer = PCT_TIMER_INVAILD;
     g_struProtocolController.u8MainState = PCT_STATE_INIT;
     g_struProtocolController.u8RegisterTimer = PCT_TIMER_INVAILD;
+    g_struProtocolController.u32CloudNotAckNum = 0;
     PCT_SendNotifyMsg(ZC_CODE_WIFI_DISCONNECTED);
     ZC_ClientSleep();
 }
@@ -1116,7 +1139,7 @@ u32 PCT_SendMsgToCloud(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
     }
 
     u16Len = ZC_HTONS(pstruSecHead->u16TotalMsg) + sizeof(ZC_SecHead) + u16PaddingLen;    
-    
+
     if (u16Len > MSG_BUFFER_MAXLEN)
     {
         return ZC_RET_ERROR;
@@ -1135,7 +1158,6 @@ u32 PCT_SendMsgToCloud(ZC_SecHead *pstruSecHead, u8 *pu8PlainData)
             {
                 return ZC_RET_ERROR;
             }
-            
             pstruSecHead->u16TotalMsg = ZC_HTONS(u16Len);
             /*copy sechead*/
             memcpy(g_struSendBuffer[u32Index].u8MsgBuffer, (u8*)pstruSecHead, sizeof(ZC_SecHead));

@@ -20,19 +20,13 @@
 *************************************************/
 u32  EVENT_BuildHeartMsg(u8 *pu8Msg, u16 *pu16Len)
 {
-    ZC_MessageHead *pstruMsg = NULL;
-    u16 crc = 0;
-    pstruMsg = (ZC_MessageHead *)pu8Msg;
-    pstruMsg->MsgCode = ZC_CODE_HEARTBEAT;
-    pstruMsg->MsgId = 0;  
-    pstruMsg->Payloadlen = 0;
-    pstruMsg->Version = ZC_VERSION;
-    pstruMsg->OptNum = 0;      
-    crc = crc16_ccitt((u8*)(pstruMsg+1), 0);
-    pstruMsg->TotalMsgCrc[0]=(crc&0xff00)>>8;
-    pstruMsg->TotalMsgCrc[1]=(crc&0xff);
-
-    *pu16Len = sizeof(ZC_MessageHead);
+    ZC_SecHead *pstruMsg = NULL;
+    pstruMsg = (ZC_SecHead *)pu8Msg;
+    
+    pstruMsg->u16TotalMsg = 0;
+    pstruMsg->u8SecType = 0x10;
+    pstruMsg->u8Resver = PCT_HEARTBEAT_WITH_ACK;
+    *pu16Len = sizeof(ZC_SecHead);
     return ZC_RET_OK;
 }
 

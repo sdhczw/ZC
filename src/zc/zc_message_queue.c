@@ -12,8 +12,6 @@
 #include <zc_protocol_controller.h>
 
 
-
-
 /*************************************************
 * Function: MSG_Init()
 * Description: 
@@ -262,23 +260,41 @@ void MSG_RecvDataFromCloud(u8 *pu8Data, u32 u32DataLen)
 {
     u32 u32RetVal;
     u16 u16PlainLen;
+
+    ZC_SecHead *struHead = NULL;
+
     u32RetVal = MSG_RecvData(&g_struRecvBuffer, pu8Data, u32DataLen);
 
     if (ZC_RET_OK == u32RetVal)
     {
         if (MSG_BUFFER_FULL == g_struRecvBuffer.u8Status)
         {
-            u32RetVal = SEC_Decrypt((ZC_SecHead*)g_struRecvBuffer.u8MsgBuffer, 
-                g_struRecvBuffer.u8MsgBuffer + sizeof(ZC_SecHead), g_u8MsgBuildBuffer, &u16PlainLen);
-
-            if (ZC_RET_OK == u32RetVal)
+            if (sizeof(ZC_SecHead) == g_struRecvBuffer.u32Len)
             {
-                /*copy data*/
-                memcpy(g_struRecvBuffer.u8MsgBuffer, g_u8MsgBuildBuffer, u16PlainLen);
+                struHead = (ZC_SecHead*)g_struRecvBuffer.u8MsgBuffer;
+                if (0 == struHead->u16TotalMsg 
+                    && PCT_VERSION_WITH_ACK == struHead->u8SecType
+                    && PCT_HEARTBEAT_WITH_ACK == struHead->u8Resver)
+                {
+                    PCT_DelCheckCloudAckTimer();
+                }
 
-                g_struRecvBuffer.u32Len = u16PlainLen;
+                g_struRecvBuffer.u32Len = 0;
+                g_struRecvBuffer.u8Status = MSG_BUFFER_IDLE;
+            }
+            else
+            {
+                u32RetVal = SEC_Decrypt((ZC_SecHead*)g_struRecvBuffer.u8MsgBuffer, 
+                    g_struRecvBuffer.u8MsgBuffer + sizeof(ZC_SecHead), g_u8MsgBuildBuffer, &u16PlainLen);
 
-                u32RetVal = MSG_PushMsg(&g_struRecvQueue, (u8*)&g_struRecvBuffer);
+                if (ZC_RET_OK == u32RetVal)
+                {
+                    PCT_DelCheckCloudAckTimer();
+                    /*copy data*/
+                    memcpy(g_struRecvBuffer.u8MsgBuffer, g_u8MsgBuildBuffer, u16PlainLen);
+                    g_struRecvBuffer.u32Len = u16PlainLen;
+                    (void)MSG_PushMsg(&g_struRecvQueue, (u8*)&g_struRecvBuffer);
+                }
             }
         }
     }

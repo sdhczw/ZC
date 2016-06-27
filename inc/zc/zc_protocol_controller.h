@@ -42,6 +42,7 @@
 #define    PCT_TIMER_REGISTER               (4)
 #define    PCT_TIMER_SENDUBIND              (5)
 #define    PCT_TIMER_REBOOT                 (6)
+#define    PCT_TIMER_CHECK_CLOUD_ACK        (7)
 
 
 #define    PCT_TIMER_INTERVAL_RECONNECT     (1000)
@@ -50,9 +51,11 @@
 #define    PCT_TIMER_INTERVAL_REGISTER      (1000)
 #define    PCT_TIMER_INTERVAL_SENDUBIND     (1000)
 #define    PCT_TIMER_INTERVAL_REBOOT        (1000)
+#define    PCT_TIMER_INTERVAL_CLOUD_ACK     (PCT_TIMER_INTERVAL_HEART / 2)
 
+#define    PCT_SEND_BC_MAX_NUM                (300)       /*5 minutes*/
 
-#define    PCT_SEND_BC_MAX_NUM              (300)       /*5 minutes*/
+#define    PCT_NOT_REV_CLOUD_ACK_MAX_NUM     (2)
 
 
 #define    PCT_KEY_UNRECVED     (0)
@@ -65,6 +68,9 @@
 
 #define    PCT_DEVICE_MIN_LEN      (8)
 #define    PCT_DEVICE_MAX_LEN      (64)
+
+#define    PCT_HEARTBEAT_WITH_ACK         (1)
+#define    PCT_VERSION_WITH_ACK           (0x10)
 
 /* no license */
 #define ZC_AUTH_LICENSE_NONE            "NIL"
@@ -167,11 +173,13 @@ typedef struct
     
     u8   u8RebootTimer;   
     u8   u8HeartTimer;
+    u8   u8CloudAckTimer;
     u8   u8SendMoudleTimer;
     u8   u8RegisterTimer;
     
     u8   u8SendMoudleMsgId;
     u32  u32LocalTokenFlag;
+    u32  u32CloudNotAckNum;
     
     PTC_Connection struCloudConnection;
     PTC_Connection struClientConnection;
@@ -234,6 +242,8 @@ void PCT_HandleOtaEndMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffe
 void PCT_HandleMoudleMsg(PTC_ProtocolCon *pstruContoller, MSG_Buffer *pstruBuffer);
 void PCT_SendUnbindMsg(void);
 void PCT_SetAesKey(u8 *pu8Key);
+void PCT_DelCheckCloudAckTimer(void);
+
 
 
 #ifdef __cplusplus

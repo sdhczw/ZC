@@ -115,9 +115,19 @@ void TIMER_TimeoutAction(u8 u8TimerIndex)
         case PCT_TIMER_SENDUBIND:
             PCT_SendUnbindMsg();
             break;
-         case PCT_TIMER_REBOOT:
+        case PCT_TIMER_REBOOT:
             g_struProtocolController.pstruMoudleFun->pfunReboot();
             break;
+        case PCT_TIMER_CHECK_CLOUD_ACK:
+            if (++g_struProtocolController.u32CloudNotAckNum >= PCT_NOT_REV_CLOUD_ACK_MAX_NUM)
+            {
+                ZC_Printf("Not receive ack from cloud,disconnect from cloud\n");
+                g_struProtocolController.u32CloudNotAckNum = 0;
+                g_struProtocolController.u8CloudAckTimer = PCT_TIMER_INVAILD;
+                PCT_DisConnectCloud(&g_struProtocolController);
+            }
+            break;
+          
     }
 }
 

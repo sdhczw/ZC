@@ -303,7 +303,7 @@ u32 SEC_PaddingCheck(u8 u8SecType, u16 u16PlainLen, u16 *u16PaddingLen)
         u8SecFlag = u8SecType;
     }
 
-    switch(u8SecFlag)
+    switch(u8SecFlag & 0xF)
     {
         case ZC_SEC_ALG_AES:
         {
@@ -354,7 +354,7 @@ u32 SEC_Encrypt(ZC_SecHead *pstruSecHead, u8 *pu8CiperBuf, u8 *pu8PlainBuf, u16 
     }
 
 
-    switch (pstruSecHead->u8SecType)
+    switch (pstruSecHead->u8SecType & 0xF)
     {
         case ZC_SEC_ALG_NONE:
             memcpy(pu8CiperBuf, pu8PlainBuf, ZC_HTONS(pstruSecHead->u16TotalMsg));
